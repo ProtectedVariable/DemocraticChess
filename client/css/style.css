@@ -1,0 +1,33 @@
+#chat {
+    resize: none;
+    pointer-events: none;
+    cursor: default;
+    text-align: left;
+    float: left;
+    background-color: #eeeeee;
+    border: 1px solid black;
+}
+
+#chessboard {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#info {
+    resize: none;
+    pointer-events: none;
+    cursor: default;
+    text-align: left;
+    background-color: #eeeeee;
+    border: 1px solid black;
+}
+
+#message {
+    clear: both;
+    float: left;
+    width: 45ch;
+}
+
+body {
+    background-color: #eeeeee;
+}
