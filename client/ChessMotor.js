@@ -1,26 +1,34 @@
 "use strict";
 
-PieceType = {
-	EMPTY = 0,
-	PAWN = 1,
-	TOWER = 2,
-	KNIGHT = 3,
-	BISHOP = 4,
-	QUEEN = 5,
-	KING = 6
+const PieceType = {
+	EMPTY : 0,
+	PAWN : 1,
+	TOWER : 2,
+	KNIGHT : 3,
+	BISHOP : 4,
+	QUEEN : 5,
+	KING : 6
 };
 
-PieceColor = {
-	BLACK = 0,
-	WHITE = 1
+const PieceColor = {
+	BLACK : 0,
+	WHITE : 1
 };
 
 function getNewGame() {
-	game = {
-		board : [8][8]
+	let game = {
+		board : [[0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 0, 0, 0]]
 	}
+
 	game.board.forEach(function(el, i) {
-		el.forEarch(function(element, j) {
+		el.forEach(function(element, j) {
 			if(i === 1) {
 				element = {
 					piece : PieceType.PAWN,
