@@ -29,7 +29,6 @@ function getNewGame() {
 
 	game.board.forEach(function(el, i) {
 		el.forEach(function(element, j) {
-			console.log(i, j)
 			if(i === 1) {
 				game.board[i][j] = {
 					piece : PieceType.PAWN,
