@@ -29,14 +29,15 @@ function getNewGame() {
 
 	game.board.forEach(function(el, i) {
 		el.forEach(function(element, j) {
+			console.log(i, j)
 			if(i === 1) {
-				element = {
+				game.board[i][j] = {
 					piece : PieceType.PAWN,
 					color : PieceColor.WHITE
 				};
 			}
 			else if(i === 6) {
-				element = {
+				game.board[i][j] = {
 					piece : PieceType.PAWN,
 					color : PieceColor.BLACK
 				};
@@ -45,37 +46,43 @@ function getNewGame() {
 				switch(j) {
 					case 0:
 					case 7:
-						element = {
+						game.board[i][j] = {
 							piece : PieceType.TOWER,
 							color : i === 0 ? PieceColor.WHITE : PieceColor.BLACK
 						};
 						break;
 					case 1:
 					case 6:
-						element = {
+						game.board[i][j] = {
 							piece : PieceType.KNIGHT,
 							color : i === 0 ? PieceColor.WHITE : PieceColor.BLACK
 						};
 						break;
 					case 2:
 					case 5:
-						element = {
+						game.board[i][j] = {
 							piece : PieceType.BISHOP,
 							color : i === 0 ? PieceColor.WHITE : PieceColor.BLACK
 						};
 						break;
 					case 3:
-						element = {
+						game.board[i][j] = {
 							piece : PieceType.KING,
 							color : i === 0 ? PieceColor.WHITE : PieceColor.BLACK
 						};
 						break;
 					case 4:
-						element = {
+						game.board[i][j] = {
 							piece : PieceType.QUEEN,
 							color : i === 0 ? PieceColor.WHITE : PieceColor.BLACK
 						};
 						break;
+				}
+			}
+			else {
+				game.board[i][j] = {
+					piece : PieceType.EMPTY,
+					color : undefined
 				}
 			}
 		});
@@ -84,5 +91,37 @@ function getNewGame() {
 	return game;
 }
 
+function printBoard(engine) {
+	engine.board.forEach(line => {
+		let lineString = "";
+		line.forEach(element => {
+			switch(element.piece) {
+				case PieceType.EMPTY:
+					lineString += "  ";
+					break;
+				case PieceType.PAWN:
+					lineString += "P ";
+					break;
+				case PieceType.TOWER:
+					lineString += "T ";
+					break;
+				case PieceType.KNIGHT:
+					lineString += "C ";
+					break;
+				case PieceType.BISHOP:
+					lineString += "F ";
+					break;
+				case PieceType.KING:
+					lineString += "R ";
+					break;
+				case PieceType.QUEEN:
+					lineString += "D ";
+					break;
+			}
+		});
+		console.log(lineString);
+	});
+}
+
 let engine = getNewGame();
-console.log(engine.board);
+printBoard(engine);
