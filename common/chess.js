@@ -21,8 +21,9 @@ function move(startCell, endCell) {
     return {startCell, endCell};
 }
 
-
-exports.PieceType = PieceType;
-exports.PieceColor = PieceColor;
-exports.cell = cell;
-exports.move = move;
+if(typeof exports != 'undefined') {
+    exports.PieceType = PieceType;
+    exports.PieceColor = PieceColor;
+    exports.cell = cell;
+    exports.move = move;
+}

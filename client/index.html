@@ -1,11 +1,13 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="en">
     <head>
       <meta charset="utf-8">
       <title>Democratic Chess</title>
       <link rel="stylesheet" href="css/style.css">
       <link href='https://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
+      <script src="../common/chess.js"></script>
+      <script src="../common/communication.js"></script>
+      <script src="scripts/chessclient.js"></script>
       <script src="scripts/chessrender.js"></script>
   </head>
     <body>
@@ -13,15 +15,14 @@
             <textarea id="chat" rows="37" cols="40" readonly>
         Welcome to the chat room
             </textarea>
-            <input id="message" type="text" placeholder="Type your message here"/>
+            <input id="message" type="text" placeholder="Type your message here" onkeypress="handleMessage(event, 'message')"/>
         </div>
         <div class="center">
             <canvas id="chessboard" width="678" height="682"></canvas>
             <script> init(); </script>
         </div>
         <div class="right">
-            <textarea id="info" rows="37" cols="40" readonly>
-        Players:
+            <textarea id="info" rows="37" cols="40" readonly>Players:
             </textarea>
             <div id="timer">1:00</div>
         </div>

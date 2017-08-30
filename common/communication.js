@@ -22,7 +22,8 @@ function newMessage(type, params) {
 function communication(id, message) {
     return {id, message};
 }
-
-exports.messageType = messageType;
-exports.newMessage = newMessage;
-exports.communication = communication;
+if(typeof exports != 'undefined') {
+    exports.messageType = messageType;
+    exports.newMessage = newMessage;
+    exports.communication = communication;
+}

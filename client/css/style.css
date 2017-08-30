@@ -12,6 +12,7 @@ textarea {
     text-align: left;
     background-color: #eeeeee;
     color: #777777;
+    margin-left: 5%;
 }
 
 #chat {
@@ -22,12 +23,13 @@ textarea {
     background-color: #eeeeee;
     border: 1px solid #aaaaaa;
     margin-right: 5px;
-    margin-top: 75px;
+    margin-top: 16%;
 }
 
 #info {
     resize: none;
     pointer-events: none;
+    margin-top: 16%;
     cursor: default;
     text-align: left;
     background-color: #eeeeee;

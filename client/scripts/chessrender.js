@@ -5,6 +5,10 @@ const color2 = "#b58863";
 const textColor = "#777777";
 const tileSize = 83;
 
+function renderPieces(ctx, board) {
+
+}
+
 function renderBoard(ctx) {
     let x = 0;
     let y = 0;
@@ -36,5 +40,10 @@ function init() {
     let ctx = canvas.getContext("2d");
     ctx.font = "20px Arial";
     renderBoard(ctx);
+    let name = "";
+    while(name == null || name === "") {
+        name = prompt("Please enter your nickname");
+    }
+    connect(name);
     return ctx;
 }
