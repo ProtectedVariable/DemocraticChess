@@ -40,9 +40,9 @@ function broadcastToAll(communication) {
 }
 
 function broadcastToTeam(communication, team) {
-    let team = players.filter(player => player.team === team);
+    let members = players.filter(player => player.team === team);
 
-    team.forEach(member => member.socket.send(communication));
+    members.forEach(member => member.socket.send(communication));
 }
 
 function parseMessage(data) {
@@ -51,23 +51,26 @@ function parseMessage(data) {
     console.log(content);
 
     let id = content.id;
-    let message = JSON.parse(content.message);
+    let message = content.message;
     console.log(message);
     //console.log(players[id]);
 
     if (players[id] !== undefined) {
+        console.log("VALID");
         let player = players[id];
 
         if (message.type === comm.messageType.NAME) {
             //we could check if it has already a name
             player.name = message.params;
             console.log(`New player for id ${id} is ${player.name} of team ${player.team}`);
+            //change this to send player object but without critical info (like socket and ID)
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, [player.name, player.team])));
         } else if (message.type === comm.messageType.MOVE) {
             //This is a vote for movement
-        } else if (message.type === message.CHAT) {
+        } else if (message.type === comm.messageType.CHAT) {
             //This is a chat from a client
             console.log(`New message from ${player.name}: ${message.params}`);
+            broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(player, message.params))), player.team);
         }
 
     }
