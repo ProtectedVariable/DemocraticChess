@@ -1,3 +1,20 @@
+textarea {
+    color: #777777;
+}
+
+#timer {
+    font-family: "Orbitron", Times, serif;
+    font-size: 50px;
+    text-align: left;
+    background-color: #eeeeee;
+    width: 1px;
+    margin-top: 5px;
+    margin-left: 90px;
+    color: #777777;
+    clear: both;
+    float: left;
+}
+
 #chat {
     resize: none;
     pointer-events: none;
@@ -5,7 +22,9 @@
     text-align: left;
     float: left;
     background-color: #eeeeee;
-    border: 1px solid black;
+    border: 1px solid #aaaaaa;
+    margin-right: 5px;
+    margin-top: 75px;
 }
 
 #chessboard {
@@ -19,13 +38,14 @@
     cursor: default;
     text-align: left;
     background-color: #eeeeee;
-    border: 1px solid black;
+    border: 1px solid #aaaaaa;
+    margin-bottom: 150px;
 }
 
 #message {
     clear: both;
     float: left;
-    width: 45ch;
+    width: 309px;
 }
 
 body {

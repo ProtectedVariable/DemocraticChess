@@ -5,17 +5,21 @@
       <meta charset="utf-8">
       <title>Democratic Chess</title>
       <link rel="stylesheet" href="css/style.css">
+      <link href='https://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
       <script src="scripts/chessrender.js"></script>
     </head>
     <body>
-    <textarea id="chat" rows="47" cols="40" readonly>
+    <textarea id="chat" rows="37" cols="40" readonly>
         Welcome to the chat room
     </textarea>
     <input id="message" type="text" placeholder="Type your message here"/>
-        <canvas id="chessboard" width="712" height="712"></canvas>
+        <canvas id="chessboard" width="678" height="682"></canvas>
         <script> init(); </script>
-    <textarea id="info" rows="47" cols="40" readonly>
+    <textarea id="info" rows="37" cols="40" readonly>
 Players:
     </textarea>
+    <div id="timer">
+1:00
+    </div>
     </body>
 </html>

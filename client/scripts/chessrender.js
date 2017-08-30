@@ -2,10 +2,13 @@
 
 const color1 = "#f0d9b5";
 const color2 = "#b58863";
+const textColor = "#777777"
+const tileSize = 83;
 
 function init() {
     let canvas = document.getElementById("chessboard");
     let ctx = canvas.getContext("2d");
+    ctx.font = "20px Arial";
     renderBoard(ctx);
     return ctx;
 }
@@ -19,11 +22,19 @@ function renderBoard(ctx) {
         } else {
             ctx.fillStyle = color2;
         }
-        ctx.fillRect(x*89, y*89, 89, 89);
+        ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
         x++;
         if(x >= 8) {
             y++;
+            ctx.fillStyle = textColor;
+            ctx.fillText(""+y,x*tileSize+2, y*tileSize-tileSize/2+10);
             x = 0;
         }
+    }
+    x = 0;
+    while(x < 8) {
+        ctx.fillStyle = textColor;
+        ctx.fillText(String.fromCharCode(65+x), x*tileSize+tileSize/2-10, 8*tileSize+17);
+        x++;
     }
 }
