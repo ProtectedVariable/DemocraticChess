@@ -15,6 +15,12 @@ const PieceColor = {
 	WHITE : 1
 };
 
+const EMPTY_CASE = {
+	piece : PieceType.EMPTY,
+	color : undefined,
+	hasMoved : undefined
+}
+
 function getNewGame() {
 	let game = {
 		board : [[0, 0, 0, 0, 0, 0, 0, 0],
@@ -78,13 +84,8 @@ function getNewGame() {
 						break;
 				}
 			}
-			else {
-				game.board[i][j] = {
-					piece : PieceType.EMPTY,
-					color : undefined,
-					hasMoved : undefined
-				}
-			}
+			else
+				game.board[i][j] = EMPTY_CASE;
 		});
 	});
 
@@ -121,6 +122,29 @@ function printBoard(engine) {
 		});
 		console.log(lineString);
 	});
+}
+
+function getBoardCopy(engine) {
+	let clone = getNewGame();
+	engine.board.forEach(function(line, i) {
+		line.forEach(function(spot, j) {
+			clone.board[i][j] = spot;
+		});
+	});
+	return clone;
+}
+
+function move(engine, fromX, fromY, toX, toY) {
+	let eaten = engine.board[toX][toY].piece;
+
+	engine.board[fromX][fromY].hasMoved = true;
+	engine.board[toX][toY] = engine.board[fromX][fromY];
+	engine.board[fromX][fromY] = EMPTY_CASE;
+
+	if(eaten === PieceType.EMPTY)
+		return undefined;
+	else
+		return eaten;
 }
 
 function getAllPossibleMoves(engine, x, y) {
@@ -352,7 +376,6 @@ function checkCheck(engine, color) {
 				let moves = getAllPossibleMoves(engine, i, j);
 				if(moves !== undefined)
 					moves.forEach(move => allCasesEnnemyCanReach.push(move));
-
 			}
 			if(engine.board[i][j].color === color && engine.board[i][j].piece === PieceType.KING) {
 				targetX = i;
@@ -368,6 +391,32 @@ function checkCheck(engine, color) {
 	return result;
 }
 
+//Teste si le roi de la couleur color est echec et mat
+function checkCheckMate(engine, color) {
+	for(let i = 0 ; i < 8 ; i++) {
+		for(let j = 0 ; j < 8 ; j++) {
+			let result = true;
+			if(engine.board[i][j].color === color) {
+				let engineCopy = getBoardCopy(engine);
+				let moves = getAllPossibleMoves(engineCopy, i, j);
+				moves.forEach(possibleMove => {
+					 move(engineCopy, i, j, possibleMove[0], possibleMove[1]);
+					 result = checkCheck(engineCopy, color);
+					 if(result === false)
+					 	return;
+					
+				 });
+				 if(!result)
+				 	return false;
+			}
+		}
+	}
+	return true;
+}
 
 let engine = getNewGame();
+engine.board[6][3].piece = PieceType.QUEEN;
+engine.board[6][3].color = PieceColor.WHITE;
+printBoard(engine);
+console.log(checkCheckMate(engine, 0));
 printBoard(engine);
