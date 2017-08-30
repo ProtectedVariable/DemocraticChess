@@ -2,22 +2,14 @@
 
 const color1 = "#f0d9b5";
 const color2 = "#b58863";
-const textColor = "#777777"
+const textColor = "#777777";
 const tileSize = 83;
-
-function init() {
-    let canvas = document.getElementById("chessboard");
-    let ctx = canvas.getContext("2d");
-    ctx.font = "20px Arial";
-    renderBoard(ctx);
-    return ctx;
-}
 
 function renderBoard(ctx) {
     let x = 0;
     let y = 0;
     while(x < 8 && y < 8) {
-        if((x + y) % 2 == 0) {
+        if((x + y) % 2 === 0) {
             ctx.fillStyle = color1;
         } else {
             ctx.fillStyle = color2;
@@ -37,4 +29,12 @@ function renderBoard(ctx) {
         ctx.fillText(String.fromCharCode(65+x), x*tileSize+tileSize/2-10, 8*tileSize+17);
         x++;
     }
+}
+
+function init() {
+    let canvas = document.getElementById("chessboard");
+    let ctx = canvas.getContext("2d");
+    ctx.font = "20px Arial";
+    renderBoard(ctx);
+    return ctx;
 }

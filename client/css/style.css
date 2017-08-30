@@ -2,17 +2,16 @@ textarea {
     color: #777777;
 }
 
+.left{ float: left; width: 25%; }
+.right{ float: right; width: 25%; }
+.center{ display: inline-block; width: 50%; }
+
 #timer {
     font-family: "Orbitron", Times, serif;
     font-size: 50px;
     text-align: left;
     background-color: #eeeeee;
-    width: 1px;
-    margin-top: 5px;
-    margin-left: 90px;
     color: #777777;
-    clear: both;
-    float: left;
 }
 
 #chat {
@@ -20,16 +19,10 @@ textarea {
     pointer-events: none;
     cursor: default;
     text-align: left;
-    float: left;
     background-color: #eeeeee;
     border: 1px solid #aaaaaa;
     margin-right: 5px;
     margin-top: 75px;
-}
-
-#chessboard {
-    margin-left: auto;
-    margin-right: auto;
 }
 
 #info {
@@ -39,12 +32,9 @@ textarea {
     text-align: left;
     background-color: #eeeeee;
     border: 1px solid #aaaaaa;
-    margin-bottom: 150px;
 }
 
 #message {
-    clear: both;
-    float: left;
     width: 309px;
 }
 
