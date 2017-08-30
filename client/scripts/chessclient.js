@@ -8,6 +8,23 @@ let socket;
 let open = false;
 let name = "";
 
+function getTeamName(i) {
+    if(i === PieceColor.WHITE) {
+        return "white";
+    } else {
+        return "black";
+    }
+}
+
+function addToChat(sender, message) {
+    document.getElementById("chat").value += "\n"+sender+": "+message;
+    document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+}
+
+function addPlayer(name, team) {
+    document.getElementById("chat").value
+}
+
 function onMessageReceived(msg) {
     console.log(msg.data);
     let message = JSON.parse(msg.data).message;
@@ -15,6 +32,13 @@ function onMessageReceived(msg) {
         case messageType.ID:
             id = message.params;
             console.log(id);
+            break;
+        case messageType.NEW_PLAYER:
+            addToChat("Server", "Player "+message.params[0]+" has joined team "+getTeamName(message.params[1]));
+            addPlayer(message.params[0], message.params[1]);
+            break;
+        case messageType.INCOMING_CHAT:
+            addToChat(message.params.sender, message.params.message);
             break;
     }
 }

@@ -17,7 +17,6 @@ textarea {
 
 #chat {
     resize: none;
-    pointer-events: none;
     cursor: default;
     text-align: left;
     background-color: #eeeeee;
@@ -30,6 +29,7 @@ textarea {
     resize: none;
     pointer-events: none;
     margin-top: 16%;
+    height: 80px;
     cursor: default;
     text-align: left;
     background-color: #eeeeee;
