@@ -20,7 +20,7 @@ function newMessage(type, params) {
 }
 
 function communication(id, message) {
-    return {id, message};
+    return JSON.stringify({id, message});
 }
 if(typeof exports != 'undefined') {
     exports.messageType = messageType;

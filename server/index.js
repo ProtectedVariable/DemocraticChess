@@ -8,7 +8,6 @@ const server = new webSocket.Server({port: 8080, family: 4});
 var players = [];
 
 
-
 function player(socket, id, pseudo) {
     let user = {socket: socket, id: id, name: pseudo, team: undefined};
 
@@ -35,7 +34,7 @@ function player(socket, id, pseudo) {
 function broadcastToAll(communication) {
     server.clients.forEach(client => {
         if (client !== server && client.readyState === webSocket.OPEN) {
-            client.send(JSON.stringify(communication));
+            client.send(communication);
         }
     })
 }
@@ -49,9 +48,11 @@ function broadcastToTeam(communication, team) {
 function parseMessage(data) {
 
     let content = JSON.parse(data);
+    console.log(content);
 
     let id = content.id;
-    let message = content.message;
+    let message = JSON.parse(content.message);
+    console.log(message);
     //console.log(players[id]);
 
     if (players[id] !== undefined) {
@@ -66,7 +67,7 @@ function parseMessage(data) {
             //This is a vote for movement
         } else if (message.type === message.CHAT) {
             //This is a chat from a client
-
+            console.log(`New message from ${player.name}: ${message.params}`);
         }
 
     }
