@@ -32,7 +32,7 @@ function getNewGame() {
 			if(i === 1 || i === 6) {
 				game.board[i][j] = {
 					piece : PieceType.PAWN,
-					color : i=== 1 ? PieceColor.WHITE : PieceColor.BLACK,
+					color : i % 2,
 					hasMoved : false
 				};
 			}
@@ -42,7 +42,7 @@ function getNewGame() {
 					case 7:
 						game.board[i][j] = {
 							piece : PieceType.TOWER,
-							color : i === 0 ? PieceColor.WHITE : PieceColor.BLACK,
+							color : (i + 1) % 2,
 							hasMoved : false
 						};
 						break;
@@ -50,7 +50,7 @@ function getNewGame() {
 					case 6:
 						game.board[i][j] = {
 							piece : PieceType.KNIGHT,
-							color : i === 0 ? PieceColor.WHITE : PieceColor.BLACK,
+							color : (i + 1) % 2,
 							hasMoved : false
 						};
 						break;
@@ -58,21 +58,21 @@ function getNewGame() {
 					case 5:
 						game.board[i][j] = {
 							piece : PieceType.BISHOP,
-							color : i === 0 ? PieceColor.WHITE : PieceColor.BLACK,
+							color : (i + 1) % 2,
 							hasMoved : false
 						};
 						break;
 					case 3:
 						game.board[i][j] = {
 							piece : PieceType.KING,
-							color : i === 0 ? PieceColor.WHITE : PieceColor.BLACK,
+							color : (i + 1) % 2,
 							hasMoved : false
 						};
 						break;
 					case 4:
 						game.board[i][j] = {
 							piece : PieceType.QUEEN,
-							color : i === 0 ? PieceColor.WHITE : PieceColor.BLACK,
+							color : (i + 1) % 2,
 							hasMoved : false
 						};
 						break;
@@ -123,20 +123,7 @@ function printBoard(engine) {
 	});
 }
 
-// function getPossibleMoves(engine, x, y) {
-// 	test = engine.board[x][y];
-// 	destinations = getAllDestinations(engine, x, y);
-// 	switch(test.piece) {
-// 		case PieceType.EMPTY:
-// 			return undefined;
-// 		case PieceType.PAWN:
-// 			if(!hasMoved && isCaseEmpty(engine, )) {
-//
-// 			}
-// 	}
-// }
-
-function getAllDestinations(engine, x, y) {
+function getAllPossibleMoves(engine, x, y) {
 	let test = engine.board[x][y];
 	let board = engine.board;
 	let result = [];
@@ -171,7 +158,7 @@ function getAllDestinations(engine, x, y) {
 		case PieceType.QUEEN:
 			let s = x + 1;
 			while(s < 8) {
-				if(board[s, y].color === test.color)
+				if(board[s][y].color === test.color)
 					break;
 				result.push([s, y]);
 				if(board[s][y].piece !== PieceType.EMPTY)
@@ -180,7 +167,7 @@ function getAllDestinations(engine, x, y) {
 			}
 			s = x - 1;
 			while(s >= 0) {
-				if(board[s, y].color === test.color)
+				if(board[s][y].color === test.color)
 					break;
 				result.push([s, y]);
 				if(board[s][y].piece !== PieceType.EMPTY)
@@ -189,7 +176,7 @@ function getAllDestinations(engine, x, y) {
 			}
 			s = y + 1;
 			while(s < 8) {
-				if(board[x, s].color === test.color)
+				if(board[x][s].color === test.color)
 					break;
 				result.push([x, s]);
 				if(board[s][y].piece !== PieceType.EMPTY)
@@ -198,7 +185,7 @@ function getAllDestinations(engine, x, y) {
 			}
 			s = y - 1;
 			while(s >= 0) {
-				if(board[x, s].color === test.color)
+				if(board[x][s].color === test.color)
 					break;
 				result.push([x, s]);
 				if(board[s][y].piece !== PieceType.EMPTY)
@@ -256,30 +243,30 @@ function getAllDestinations(engine, x, y) {
 		case PieceType.KNIGHT:
 			if(x - 2 >= 0)
 			{
-				if(y + 1 < 8 && board[x - 2, y + 1].color !== test.color)
+				if(y + 1 < 8 && board[x - 2][y + 1].color !== test.color)
 					result.push([x - 2, y + 1]);
-				if(y - 1 >= 0 && board[x - 2, y - 1].color !== test.color)
+				if(y - 1 >= 0 && board[x - 2][y - 1].color !== test.color)
 					result.push([x - 2, y - 1]);
 			}
 			if(x + 2 < 8)
 			{
-				if(y + 1 < 8 && board[x + 2, y + 1].color !== test.color)
+				if(y + 1 < 8 && board[x + 2][y + 1].color !== test.color)
 					result.push([x + 2, y + 1]);
-				if(y - 1 >= 0 && board[x + 2, y - 1].color !== test.color)
+				if(y - 1 >= 0 && board[x + 2][y - 1].color !== test.color)
 					result.push([x + 2, y - 1]);
 			}
 			if(y - 2 >= 0)
 			{
-				if(x + 1 < 8 && board[x + 1, y - 2].color !== test.color)
+				if(x + 1 < 8 && board[x + 1][y - 2].color !== test.color)
 					result.push([x + 1, y - 2]);
-				if(x - 1 >= 0 && board[x - 1, y - 2].color !== test.color)
+				if(x - 1 >= 0 && board[x - 1][y - 2].color !== test.color)
 					result.push([x - 1, y - 2]);
 			}
 			if(y + 2 < 8)
 			{
-				if(x + 1 < 8 && board[x + 1, y + 2].color !== test.color)
+				if(x + 1 < 8 && board[x + 1][y + 2].color !== test.color)
 					result.push([x + 1, y + 2]);
-				if(x - 1 >= 0 && board[x - 1, y + 2].color !== test.color)
+				if(x - 1 >= 0 && board[x - 1][y + 2].color !== test.color)
 					result.push([x - 1, y + 2]);
 			}
 			break;
@@ -287,7 +274,7 @@ function getAllDestinations(engine, x, y) {
 			for(let i = -1 ; i <= 1 ; i++) {
 				for(let j = -1 ; j <= 1 ; j++) {
 					if((x + i >= 0 && x + i < 8) && (y + j >= 0 && y + j < 8) && (i !== 0 || j !== 0)) {
-						if(board[x + i, y + j].color !== test.color)
+						if(board[x + i][y + j].color !== test.color)
 							result.push([x + i, y + j]);
 					}
 				}
@@ -306,15 +293,10 @@ function getAllDestinations(engine, x, y) {
 			}
 			break;
 	}
-	return result;
-}
-
-function isCaseEmpty(engine, x, y) {
-	return engine.board[x][y] === PieceType.EMPTY;
-}
-
-function doesCaseContainEnemy(engine, x, y, player) {
-	return !isCaseEmpty(engine, x, y) && engine.board[x][y].color !== player;
+	if(result.length > 0)
+		return result;
+	else
+		return undefined;
 }
 
 function isSmallCastlingPossible(engine, player) {
@@ -359,11 +341,33 @@ function isGreatCastlingPossible(engine, player) {
 	return false;
 }
 
+//Teste si le roi de la couleur color est en echec
+function checkCheck(engine, color) {
+	let targetX = 0;
+	let targetY = 0;
+	let allCasesEnnemyCanReach = [];
+	for(let i = 0 ; i < 8 ; i++) {
+		for(let j = 0 ; j < 8 ; j++) {
+			if(engine.board[i][j].color !== color && engine.board[i][j].piece !== PieceType.EMPTY) {
+				let moves = getAllPossibleMoves(engine, i, j);
+				if(moves !== undefined)
+					moves.forEach(move => allCasesEnnemyCanReach.push(move));
+
+			}
+			if(engine.board[i][j].color === color && engine.board[i][j].piece === PieceType.KING) {
+				targetX = i;
+				targetY = j;
+			}
+		}
+	}
+	let result = false;
+	allCasesEnnemyCanReach.forEach(move => {
+		if(move[0] === targetX && move[1] === targetY)
+			result = true;
+	})
+	return result;
+}
+
+
 let engine = getNewGame();
 printBoard(engine);
-for(let i = 0 ; i < 8 ; i++) {
-	console.log();
-	console.log(engine.board[0][i].piece);
-	let result = getAllDestinations(engine, 0, i);
-	console.log(result);
-}
