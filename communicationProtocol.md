@@ -29,9 +29,11 @@ The following types of messages will be available:
 |Team assignment | `TEAM`| id of the team | Single user|
 |Board state | `BOARD` | The board as an array| Single user|
 |Player list | `LIST` | The players list | Single user|
+|ID transmission | `ID` | ID as number | Single user|
 |Vote for movement | `VOTE` |Move object `{StartCell, EndCell}`| Team|
 | New Chat | `INCOMING_CHAT` | Chat object `{Source, message}`| Team |
 | Move done | `MOVED` |Move object `{StartCell, EndCell}` | All players|
 |Result / End of game | `RESULT` | id of winner team | All players|
 | Change of team to play (timeout) | `CHANGE` | id of the next team to play | All players |
 | New Player Joined | `NEW_PLAYER` | Player object |All players |
+| Player left | `PLAYER_LEFT` | Player object | All players |
