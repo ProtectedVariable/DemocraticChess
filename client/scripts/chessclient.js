@@ -35,7 +35,8 @@ function onMessageReceived(msg) {
             console.log(id);
             break;
         case messageType.NEW_PLAYER:
-            addToChat("Server", "Player "+message.params[0]+" has joined team "+getTeamName(message.params[1]));
+            let player = message.params;
+            addToChat("Server", "Player "+player.name+" has joined team "+getTeamName(player.team));
             addPlayer(message.params[0], message.params[1]);
             break;
         case messageType.INCOMING_CHAT:

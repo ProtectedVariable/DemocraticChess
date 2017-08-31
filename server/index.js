@@ -5,28 +5,31 @@ const chess = require("../common/ChessMotor.js");
 
 const server = new webSocket.Server({port: 8080, family: 4});
 
-let players = [];
+let clients = [];
 
 
 //TODO: Store board/engine here, clear board only at start of server or when there's nobody left
 
 //TODO: add keep alive detection
 
-
+function client(socket, id, player) {
+    let user = {socket,id,player};
+    return user;
+}
 
 //TODO We should have a client object that contains the socket, id and a player object
 //The player object would contain all public info (sent to clients), like name, team and score
 
-function player(socket, id, pseudo) {
-    let user = {socket: socket, id: id, name: pseudo, team: undefined};
+function player(pseudo) {
+    let user = {name: pseudo, team: undefined};
 
     function pickTeam() {
         //or team with less people
-        let numberOfWhites = players.filter(player => player.team === chess.PieceColor.WHITE).length;
+        let numberOfWhites = clients.filter(client => client.player.team === chess.PieceColor.WHITE).length;
 
-        if (numberOfWhites > 0.5 * players.length) {
+        if (numberOfWhites > 0.5 * clients.length) {
             user.team = chess.PieceColor.BLACK;
-        } else if (numberOfWhites < 0.5 * players.length) {
+        } else if (numberOfWhites < 0.5 * clients.length) {
             user.team = chess.PieceColor.WHITE;
         } else {
             user.team = Math.random() > 0.5 ? chess.PieceColor.WHITE : chess.PieceColor.BLACK;
@@ -49,7 +52,7 @@ function broadcastToAll(communication) {
 }
 
 function broadcastToTeam(communication, team) {
-    let members = players.filter(player => player.team === team);
+    let members = clients.filter(client => client.player.team === team);
 
     members.forEach(member => member.socket.send(communication));
 }
@@ -64,16 +67,15 @@ function parseMessage(data) {
     console.log(message);
     //console.log(players[id]);
 
-    if (players[id] !== undefined) {
+    if (clients[id] !== undefined) {
         console.log("VALID");
-        let player = players[id];
+        let player = clients[id].player;
 
         if (message.type === comm.messageType.NAME) {
             //we could check if it has already a name
             player.name = message.params;
             console.log(`New player for id ${id} is ${player.name} of team ${player.team}`);
-            //change this to send player object but without critical info (like socket and ID)
-            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, [player.name, player.team])));
+            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, player)));
         } else if (message.type === comm.messageType.MOVE) {
             //This is a vote for movement
         } else if (message.type === comm.messageType.CHAT) {
@@ -92,16 +94,16 @@ server.on("connection", (ws) => {
     //On connection, will join team and add to player list (assign team)
     //Generate a random ID and send it, so the client will send it with their messages
     //On disconnect, remove from team
-    let id = players.length;
-    let user = player(ws, id, undefined);
-    players.push(user);
+    let id = clients.length;
+    let user = client(ws, id, player(undefined));
+    clients.push(user);
 
     ws.on("message", parseMessage);
     ws.on("close", () => {
-        players.forEach(player => {
-            if (player.socket === ws) {
+        clients.forEach(client => {
+            if (client.socket === ws) {
                 //send player left message and remove from array
-                console.log(`Players with id ${id} disconnected`);
+                console.log(`Player with id ${id} disconnected`);
             }
         })
     });
