@@ -144,12 +144,12 @@ function getBoardCopy(engine) {
     return clone;
 }
 
-function move(engine, movement) {
-    let eaten = engine.board[movement.endCell.x][movement.endCell.y].piece;
+function move(engine, fromX, fromY, toX, toY) {
+    let eaten = engine.board[toX][toY].piece;
 
-    engine.board[movement.startCell.x][movement.startCell.y].hasMoved = true;
-    engine.board[movement.endCell.x][movement.endCell.y] = engine.board[movement.startCell.x][movement.startCell.y];
-    engine.board[movement.startCell.x][movement.startCell.y] = getEmptyCase();
+    engine.board[fromX][fromY].hasMoved = true;
+    engine.board[toX][toY] = engine.board[fromX][fromY];
+    engine.board[fromX][fromY] = getEmptyCase();
 
     if (eaten === PieceType.EMPTY)
         return undefined;
@@ -157,8 +157,8 @@ function move(engine, movement) {
         return eaten;
 }
 
-function getAllPossibleMoves(engine, cell) {
-    let test = engine.board[cell.x][y];
+function getAllPossibleMoves(engine, x, y) {
+    let test = engine.board[x][y];
     let board = engine.board;
     let result = [];
     if (test.piece === PieceType.EMPTY)
@@ -404,7 +404,7 @@ function checkCheck(engine, color) {
     }
     let result = false;
     allCasesEnnemyCanReach.forEach(move => {
-        if (move[0] === targetx && move[1] === targetY)
+        if (move[0] === targetX && move[1] === targetY)
             result = true;
     })
     return result;
@@ -438,33 +438,27 @@ function checkCheckMate(engine, color) {
 let engine = getNewGame();
 // engine.board[6][3].piece = PieceType.QUEEN;
 // engine.board[6][3].color = PieceColor.WHITE;
-engine.board[7][2] = getEmptyCase();
-engine.board[7][1] = getEmptyCase();
-engine.board[7][4] = getEmptyCase();
-engine.board[7][5] = getEmptyCase();
-engine.board[7][6] = getEmptyCase();
-engine.board[6][2] = getEmptyCase();
-engine.board[6][1] = getEmptyCase();
-engine.board[6][4] = getEmptyCase();
-engine.board[6][5] = getEmptyCase();
-engine.board[6][0] = getEmptyCase();
-engine.board[6][6] = getEmptyCase();
-engine.board[6][7] = getEmptyCase();
-engine.board[6][3] = getEmptyCase();
-engine.board[6][4].piece = PieceType.TOWER;
-engine.board[6][4].color = PieceColor.WHITE;
-engine.board[6][4].hasMoved = true;
+// engine.board[7][2] = getEmptyCase();
+// engine.board[7][1] = getEmptyCase();
+// engine.board[7][4] = getEmptyCase();
+// engine.board[7][5] = getEmptyCase();
+// engine.board[7][6] = getEmptyCase();
+// engine.board[6][2] = getEmptyCase();
+// engine.board[6][1] = getEmptyCase();
+// engine.board[6][4] = getEmptyCase();
+// engine.board[6][5] = getEmptyCase();
+// engine.board[6][0] = getEmptyCase();
+// engine.board[6][6] = getEmptyCase();
+// engine.board[6][7] = getEmptyCase();
+// engine.board[6][3] = getEmptyCase();
+// engine.board[6][4].piece = PieceType.TOWER;
+// engine.board[6][4].color = PieceColor.WHITE;
+// engine.board[6][4].hasMoved = true;
+//
+// console.log(getAllPossibleMoves(engine, 7, 3));
+// printBoard(engine);
+//
+// console.log(checkCheckMate(engine, PieceColor.BLACK));
 
-console.log(getAllPossibleMoves(engine, 7, 3));
-printBoard(engine);
 
-console.log(checkCheckMate(engine, PieceColor.BLACK));
-
-
-// if(typeof exports != 'undefined') {
-//     exports.PieceType = PieceType;
-//     exports.PieceColor = PieceColor;
-//     exports.cell = cell;
-//     exports.newMove = newMove;
-//     exports.getNewGame = getNewGame;
-// }
+ 
