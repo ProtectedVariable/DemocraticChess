@@ -15,19 +15,20 @@ const PieceColor = {
     WHITE: 1
 };
 
+function getEmptyCase() {
+    return {
+		piece: PieceType.EMPTY,
+    	color: undefined,
+    	hasMoved: undefined
+	};
+}
+
 function cell(x, y) {
     return {x, y};
 }
 
 function newMove(startCell, endCell) {
     return {startCell, endCell};
-}
-
-
-const EMPTY_CASE = {
-    piece: PieceType.EMPTY,
-    color: undefined,
-    hasMoved: undefined
 }
 
 function getNewGame() {
@@ -94,7 +95,7 @@ function getNewGame() {
                 }
             }
             else
-                game.board[i][j] = EMPTY_CASE;
+                game.board[i][j] = getEmptyCase();
         });
     });
 
@@ -143,12 +144,12 @@ function getBoardCopy(engine) {
     return clone;
 }
 
-function move(engine, fromX, fromY, toX, toY) {
-    let eaten = engine.board[toX][toY].piece;
+function move(engine, movement) {
+    let eaten = engine.board[movement.endCell.x][movement.endCell.y].piece;
 
-    engine.board[fromX][fromY].hasMoved = true;
-    engine.board[toX][toY] = engine.board[fromX][fromY];
-    engine.board[fromX][fromY] = EMPTY_CASE;
+    engine.board[movement.startCell.x][movement.startCell.y].hasMoved = true;
+    engine.board[movement.endCell.x][movement.endCell.y] = engine.board[movement.startCell.x][movement.startCell.y];
+    engine.board[movement.startCell.x][movement.startCell.y] = getEmptyCase();
 
     if (eaten === PieceType.EMPTY)
         return undefined;
@@ -156,8 +157,8 @@ function move(engine, fromX, fromY, toX, toY) {
         return eaten;
 }
 
-function getAllPossibleMoves(engine, x, y) {
-    let test = engine.board[x][y];
+function getAllPossibleMoves(engine, cell) {
+    let test = engine.board[cell.x][y];
     let board = engine.board;
     let result = [];
     if (test.piece === PieceType.EMPTY)
@@ -314,12 +315,14 @@ function getAllPossibleMoves(engine, x, y) {
                 else
                     result.push([7, 1]);
             }
-            else if (isGreatCastlingPossible(engine, test.color)) {
+			if (isGreatCastlingPossible(engine, test.color)) {
                 if (test.color === PieceColor.WHITE)
                     result.push([0, 5]);
                 else
                     result.push([7, 5]);
             }
+
+			result = result.filter(testIfKingIsSuicidal(engine, x, y));
             break;
     }
     if (result.length > 0)
@@ -327,6 +330,16 @@ function getAllPossibleMoves(engine, x, y) {
     else
         return undefined;
 }
+
+function testIfKingIsSuicidal(engine, kingX, kingY) {
+	return function(proposed) {
+		let copy = getBoardCopy(engine);
+		move(copy, kingX, kingY, proposed[0], proposed[1]);
+		let result = !checkCheck(copy, copy.board[proposed[0]][proposed[1]].color);
+		return result;
+	}
+}
+
 
 function isSmallCastlingPossible(engine, player) {
     if (player === PieceColor.WHITE &&
@@ -370,6 +383,7 @@ function isGreatCastlingPossible(engine, player) {
     return false;
 }
 
+
 //Teste si le roi de la couleur color est en echec
 function checkCheck(engine, color) {
     let targetX = 0;
@@ -390,7 +404,7 @@ function checkCheck(engine, color) {
     }
     let result = false;
     allCasesEnnemyCanReach.forEach(move => {
-        if (move[0] === targetX && move[1] === targetY)
+        if (move[0] === targetx && move[1] === targetY)
             result = true;
     })
     return result;
@@ -404,6 +418,8 @@ function checkCheckMate(engine, color) {
             if (engine.board[i][j].color === color) {
                 let engineCopy = getBoardCopy(engine);
                 let moves = getAllPossibleMoves(engineCopy, i, j);
+				if(moves === undefined)
+					continue;
                 moves.forEach(possibleMove => {
                     move(engineCopy, i, j, possibleMove[0], possibleMove[1]);
                     result = checkCheck(engineCopy, color);
@@ -418,19 +434,37 @@ function checkCheckMate(engine, color) {
     }
     return true;
 }
-/*
-let engine = getNewGame();
-engine.board[6][3].piece = PieceType.QUEEN;
-engine.board[6][3].color = PieceColor.WHITE;
-printBoard(engine);
-console.log(checkCheckMate(engine, 0));
-printBoard(engine);
-*/
 
-if(typeof exports != 'undefined') {
-    exports.PieceType = PieceType;
-    exports.PieceColor = PieceColor;
-    exports.cell = cell;
-    exports.newMove = newMove;
-    exports.getNewGame = getNewGame;
-}
+let engine = getNewGame();
+// engine.board[6][3].piece = PieceType.QUEEN;
+// engine.board[6][3].color = PieceColor.WHITE;
+engine.board[7][2] = getEmptyCase();
+engine.board[7][1] = getEmptyCase();
+engine.board[7][4] = getEmptyCase();
+engine.board[7][5] = getEmptyCase();
+engine.board[7][6] = getEmptyCase();
+engine.board[6][2] = getEmptyCase();
+engine.board[6][1] = getEmptyCase();
+engine.board[6][4] = getEmptyCase();
+engine.board[6][5] = getEmptyCase();
+engine.board[6][0] = getEmptyCase();
+engine.board[6][6] = getEmptyCase();
+engine.board[6][7] = getEmptyCase();
+engine.board[6][3] = getEmptyCase();
+engine.board[6][4].piece = PieceType.TOWER;
+engine.board[6][4].color = PieceColor.WHITE;
+engine.board[6][4].hasMoved = true;
+
+console.log(getAllPossibleMoves(engine, 7, 3));
+printBoard(engine);
+
+console.log(checkCheckMate(engine, PieceColor.BLACK));
+
+
+// if(typeof exports != 'undefined') {
+//     exports.PieceType = PieceType;
+//     exports.PieceColor = PieceColor;
+//     exports.cell = cell;
+//     exports.newMove = newMove;
+//     exports.getNewGame = getNewGame;
+// }
