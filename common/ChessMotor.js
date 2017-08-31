@@ -157,9 +157,8 @@ function move(engine, fromX, fromY, toX, toY) {
         return eaten;
 }
 
-function getAllPossibleMoves(engine, x, y) {
-    let test = engine.board[x][y];
-    let board = engine.board;
+function getAllPossibleMoves(board, y, x) {
+    let test = board[x][y];
     let result = [];
     if (test.piece === PieceType.EMPTY)
         return undefined;

@@ -21,7 +21,11 @@ textarea {
     text-align: left;
     background-color: #eeeeee;
     border: 1px solid #aaaaaa;
+    color: #777777;
+    height: 450px;
     margin-right: 5px;
+    overflow-y: auto;
+    word-wrap: break-word;
     margin-top: 16%;
 }
 
@@ -37,7 +41,8 @@ textarea {
 }
 
 #message {
-    width: 309px;
+    width: 100%;
+    margin-right: 5px;
 }
 
 body {

@@ -3,6 +3,8 @@
 const color1 = "#f0d9b5";
 const color2 = "#b58863";
 const textColor = "#777777";
+const highlightColor =  "#00BB00";
+const highlightBorder = 6;
 const tileSize = 83;
 
 let ctx;
@@ -11,7 +13,6 @@ let canvas;
 function refreshGame(board) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     renderBoard();
-    console.log(board);
     board.forEach(function(line, y) {
         line.forEach(function(item, x) {
             if(item.piece !== PieceType.EMPTY) {
@@ -19,6 +20,12 @@ function refreshGame(board) {
             }
         });
     });
+}
+
+function highlightTile(x, y) {
+    ctx.strokeStyle = highlightColor;
+    ctx.lineWidth = highlightBorder;
+    ctx.strokeRect(x*tileSize+highlightBorder/2, y*tileSize+highlightBorder/2, tileSize-highlightBorder, tileSize-highlightBorder);
 }
 
 function renderBoard() {
@@ -60,6 +67,9 @@ function init() {
         window.location.replace("http://google.com");
         return;
     }
+    canvas.addEventListener('mousemove', function(evt) {
+            mouseCoord = getMousePos(canvas, evt);
+    }, false);
     connect(name);
     return ctx;
 }

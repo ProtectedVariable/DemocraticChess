@@ -9,6 +9,28 @@ let socket;
 let open = false;
 let name = "";
 let board;
+let mouseCoord;
+
+function handleClick() {
+    refreshGame(board);
+    let y = Math.floor(mouseCoord.y / tileSize);
+    let x = Math.floor(mouseCoord.x / tileSize);
+    let selectedPiece = board[y][x];
+    let moves = getAllPossibleMoves(board, x, y);
+    if(moves !== undefined) {
+        moves.forEach(function(move) {
+            highlightTile(move[1], move[0]);
+        });
+    }
+}
+
+function getMousePos(canvas, e) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+}
 
 function getTeamName(i) {
     if(i === PieceColor.WHITE) {
@@ -19,7 +41,7 @@ function getTeamName(i) {
 }
 
 function addToChat(sender, message) {
-    document.getElementById("chat").value += "\n"+sender+": "+message;
+    document.getElementById("chat").innerHTML += "<br/><b>"+sender+"</b>: "+message;
     document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
 }
 
