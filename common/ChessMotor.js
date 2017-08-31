@@ -1,8 +1,31 @@
 "use strict";
-const chess = require("../common/chess.js");
+
+const PieceType = {
+    EMPTY: 0,
+    PAWN: 1,
+    TOWER: 2,
+    KNIGHT: 3,
+    BISHOP: 4,
+    QUEEN: 5,
+    KING: 6
+};
+
+const PieceColor = {
+    BLACK: 0,
+    WHITE: 1
+};
+
+function cell(x, y) {
+    return {x, y};
+}
+
+function newMove(startCell, endCell) {
+    return {startCell, endCell};
+}
+
 
 const EMPTY_CASE = {
-    piece: chess.PieceType.EMPTY,
+    piece: PieceType.EMPTY,
     color: undefined,
     hasMoved: undefined
 }
@@ -23,7 +46,7 @@ function getNewGame() {
         el.forEach(function (element, j) {
             if (i === 1 || i === 6) {
                 game.board[i][j] = {
-                    piece: chess.PieceType.PAWN,
+                    piece: PieceType.PAWN,
                     color: i % 2,
                     hasMoved: false
                 };
@@ -33,7 +56,7 @@ function getNewGame() {
                     case 0:
                     case 7:
                         game.board[i][j] = {
-                            piece: chess.PieceType.TOWER,
+                            piece: PieceType.TOWER,
                             color: (i + 1) % 2,
                             hasMoved: false
                         };
@@ -41,7 +64,7 @@ function getNewGame() {
                     case 1:
                     case 6:
                         game.board[i][j] = {
-                            piece: chess.PieceType.KNIGHT,
+                            piece: PieceType.KNIGHT,
                             color: (i + 1) % 2,
                             hasMoved: false
                         };
@@ -49,21 +72,21 @@ function getNewGame() {
                     case 2:
                     case 5:
                         game.board[i][j] = {
-                            piece: chess.PieceType.BISHOP,
+                            piece: PieceType.BISHOP,
                             color: (i + 1) % 2,
                             hasMoved: false
                         };
                         break;
                     case 3:
                         game.board[i][j] = {
-                            piece: chess.PieceType.KING,
+                            piece: PieceType.KING,
                             color: (i + 1) % 2,
                             hasMoved: false
                         };
                         break;
                     case 4:
                         game.board[i][j] = {
-                            piece: chess.PieceType.QUEEN,
+                            piece: PieceType.QUEEN,
                             color: (i + 1) % 2,
                             hasMoved: false
                         };
@@ -83,25 +106,25 @@ function printBoard(engine) {
         let lineString = "";
         line.forEach(element => {
             switch (element.piece) {
-                case chess.PieceType.EMPTY:
+                case PieceType.EMPTY:
                     lineString += "  ";
                     break;
-                case chess.PieceType.PAWN:
+                case PieceType.PAWN:
                     lineString += "P ";
                     break;
-                case chess.PieceType.TOWER:
+                case PieceType.TOWER:
                     lineString += "T ";
                     break;
-                case chess.PieceType.KNIGHT:
+                case PieceType.KNIGHT:
                     lineString += "C ";
                     break;
-                case chess.PieceType.BISHOP:
+                case PieceType.BISHOP:
                     lineString += "F ";
                     break;
-                case chess.PieceType.KING:
+                case PieceType.KING:
                     lineString += "R ";
                     break;
-                case chess.PieceType.QUEEN:
+                case PieceType.QUEEN:
                     lineString += "D ";
                     break;
             }
@@ -127,7 +150,7 @@ function move(engine, fromX, fromY, toX, toY) {
     engine.board[toX][toY] = engine.board[fromX][fromY];
     engine.board[fromX][fromY] = EMPTY_CASE;
 
-    if (eaten === chess.PieceType.EMPTY)
+    if (eaten === PieceType.EMPTY)
         return undefined;
     else
         return eaten;
@@ -137,41 +160,41 @@ function getAllPossibleMoves(engine, x, y) {
     let test = engine.board[x][y];
     let board = engine.board;
     let result = [];
-    if (test.piece === chess.PieceType.EMPTY)
+    if (test.piece === PieceType.EMPTY)
         return undefined;
     switch (test.piece) {
-        case chess.PieceType.PAWN:
-            if (test.color === chess.PieceColor.WHITE) {
-                if (board[x + 1][y].piece === chess.PieceType.EMPTY) {
-                    if (!test.hasMoved && board[x + 2][y].piece === chess.PieceType.EMPTY)
+        case PieceType.PAWN:
+            if (test.color === PieceColor.WHITE) {
+                if (board[x + 1][y].piece === PieceType.EMPTY) {
+                    if (!test.hasMoved && board[x + 2][y].piece === PieceType.EMPTY)
                         result.push([x + 2, y]);
                     result.push([x + 1, y]);
                 }
-                if (y + 1 < 8 && board[x + 1][y + 1].color === (chess.PieceType.EMPTY + 1) % 2)
+                if (y + 1 < 8 && board[x + 1][y + 1].color === (PieceType.EMPTY + 1) % 2)
                     result.push([x + 1, y + 1]);
-                if (y - 1 >= 0 && board[x + 1][y - 1].color === (chess.PieceType.EMPTY + 1) % 2)
+                if (y - 1 >= 0 && board[x + 1][y - 1].color === (PieceType.EMPTY + 1) % 2)
                     result.push([x + 1, y - 1]);
             }
             else {
-                if (board[x - 1][y].piece === chess.PieceType.EMPTY) {
-                    if (!test.hasMoved && board[x - 2][y].piece === chess.PieceType.EMPTY)
+                if (board[x - 1][y].piece === PieceType.EMPTY) {
+                    if (!test.hasMoved && board[x - 2][y].piece === PieceType.EMPTY)
                         result.push([x - 2, y]);
                     result.push([x - 1, y]);
                 }
-                if (y + 1 < 8 && board[x - 1][y + 1].color === (chess.PieceType.EMPTY + 1) % 2)
+                if (y + 1 < 8 && board[x - 1][y + 1].color === (PieceType.EMPTY + 1) % 2)
                     result.push([x - 1, y + 1]);
-                if (y - 1 >= 0 && board[x - 1][y - 1].color === (chess.PieceType.EMPTY + 1) % 2)
+                if (y - 1 >= 0 && board[x - 1][y - 1].color === (PieceType.EMPTY + 1) % 2)
                     result.push([x - 1, y - 1]);
             }
             break;
-        case chess.PieceType.TOWER:
-        case chess.PieceType.QUEEN:
+        case PieceType.TOWER:
+        case PieceType.QUEEN:
             let s = x + 1;
             while (s < 8) {
                 if (board[s][y].color === test.color)
                     break;
                 result.push([s, y]);
-                if (board[s][y].piece !== chess.PieceType.EMPTY)
+                if (board[s][y].piece !== PieceType.EMPTY)
                     break;
                 s++;
             }
@@ -180,7 +203,7 @@ function getAllPossibleMoves(engine, x, y) {
                 if (board[s][y].color === test.color)
                     break;
                 result.push([s, y]);
-                if (board[s][y].piece !== chess.PieceType.EMPTY)
+                if (board[s][y].piece !== PieceType.EMPTY)
                     break;
                 s--;
             }
@@ -189,7 +212,7 @@ function getAllPossibleMoves(engine, x, y) {
                 if (board[x][s].color === test.color)
                     break;
                 result.push([x, s]);
-                if (board[s][y].piece !== chess.PieceType.EMPTY)
+                if (board[s][y].piece !== PieceType.EMPTY)
                     break;
                 s++;
             }
@@ -198,20 +221,20 @@ function getAllPossibleMoves(engine, x, y) {
                 if (board[x][s].color === test.color)
                     break;
                 result.push([x, s]);
-                if (board[s][y].piece !== chess.PieceType.EMPTY)
+                if (board[s][y].piece !== PieceType.EMPTY)
                     break;
                 s--;
             }
-            if (test.piece !== chess.PieceType.QUEEN)
+            if (test.piece !== PieceType.QUEEN)
                 break;
-        case chess.PieceType.BISHOP:
+        case PieceType.BISHOP:
             let m = x + 1;
             let n = y - 1;
             while (m < 8 && n >= 0) {
                 if (board[m][n].color === test.color)
                     break;
                 result.push([m, n]);
-                if (board[m][n].piece !== chess.PieceType.EMPTY)
+                if (board[m][n].piece !== PieceType.EMPTY)
                     break;
                 m++;
                 n--;
@@ -222,7 +245,7 @@ function getAllPossibleMoves(engine, x, y) {
                 if (board[m][n].color === test.color)
                     break;
                 result.push([m, n]);
-                if (board[m][n].piece !== chess.PieceType.EMPTY)
+                if (board[m][n].piece !== PieceType.EMPTY)
                     break;
                 m--;
                 n++;
@@ -233,7 +256,7 @@ function getAllPossibleMoves(engine, x, y) {
                 if (board[m][n].color === test.color)
                     break;
                 result.push([m, n]);
-                if (board[m][n].piece !== chess.PieceType.EMPTY)
+                if (board[m][n].piece !== PieceType.EMPTY)
                     break;
                 m++;
                 n++;
@@ -244,13 +267,13 @@ function getAllPossibleMoves(engine, x, y) {
                 if (board[m][n].color === test.color)
                     break;
                 result.push([m, n]);
-                if (board[m][n].piece !== chess.PieceType.EMPTY)
+                if (board[m][n].piece !== PieceType.EMPTY)
                     break;
                 m--;
                 n--;
             }
             break;
-        case chess.PieceType.KNIGHT:
+        case PieceType.KNIGHT:
             if (x - 2 >= 0) {
                 if (y + 1 < 8 && board[x - 2][y + 1].color !== test.color)
                     result.push([x - 2, y + 1]);
@@ -276,7 +299,7 @@ function getAllPossibleMoves(engine, x, y) {
                     result.push([x - 1, y + 2]);
             }
             break;
-        case chess.PieceType.KING:
+        case PieceType.KING:
             for (let i = -1; i <= 1; i++) {
                 for (let j = -1; j <= 1; j++) {
                     if ((x + i >= 0 && x + i < 8) && (y + j >= 0 && y + j < 8) && (i !== 0 || j !== 0)) {
@@ -286,13 +309,13 @@ function getAllPossibleMoves(engine, x, y) {
                 }
             }
             if (isSmallCastlingPossible(engine, test.color)) {
-                if (test.color === chess.PieceColor.WHITE)
+                if (test.color === PieceColor.WHITE)
                     result.push([0, 1]);
                 else
                     result.push([7, 1]);
             }
             else if (isGreatCastlingPossible(engine, test.color)) {
-                if (test.color === chess.PieceColor.WHITE)
+                if (test.color === PieceColor.WHITE)
                     result.push([0, 5]);
                 else
                     result.push([7, 5]);
@@ -306,19 +329,19 @@ function getAllPossibleMoves(engine, x, y) {
 }
 
 function isSmallCastlingPossible(engine, player) {
-    if (player === chess.PieceColor.WHITE &&
-        engine.board[0][1].piece === chess.PieceType.EMPTY &&
-        engine.board[0][2].piece === chess.PieceType.EMPTY &&
-        engine.board[0][0].piece === chess.PieceType.TOWER &&
-        engine.board[0][3].piece === chess.PieceType.KING &&
+    if (player === PieceColor.WHITE &&
+        engine.board[0][1].piece === PieceType.EMPTY &&
+        engine.board[0][2].piece === PieceType.EMPTY &&
+        engine.board[0][0].piece === PieceType.TOWER &&
+        engine.board[0][3].piece === PieceType.KING &&
         !engine.board[0][0].hasMoved &&
         !engine.board[0][3].hasMoved)
         return true;
-    if (player === chess.PieceColor.BLACK &&
-        engine.board[7][1].piece === chess.PieceType.EMPTY &&
-        engine.board[7][2].piece === chess.PieceType.EMPTY &&
-        engine.board[7][0].piece === chess.PieceType.TOWER &&
-        engine.board[7][3].piece === chess.PieceType.KING &&
+    if (player === PieceColor.BLACK &&
+        engine.board[7][1].piece === PieceType.EMPTY &&
+        engine.board[7][2].piece === PieceType.EMPTY &&
+        engine.board[7][0].piece === PieceType.TOWER &&
+        engine.board[7][3].piece === PieceType.KING &&
         !engine.board[7][0].hasMoved &&
         !engine.board[7][3].hasMoved)
         return true;
@@ -326,21 +349,21 @@ function isSmallCastlingPossible(engine, player) {
 }
 
 function isGreatCastlingPossible(engine, player) {
-    if (player === chess.PieceColor.WHITE &&
-        engine.board[0][4].piece === chess.PieceType.EMPTY &&
-        engine.board[0][5].piece === chess.PieceType.EMPTY &&
-        engine.board[0][6].piece === chess.PieceType.EMPTY &&
-        engine.board[0][7].piece === chess.PieceType.TOWER &&
-        engine.board[0][3].piece === chess.PieceType.KING &&
+    if (player === PieceColor.WHITE &&
+        engine.board[0][4].piece === PieceType.EMPTY &&
+        engine.board[0][5].piece === PieceType.EMPTY &&
+        engine.board[0][6].piece === PieceType.EMPTY &&
+        engine.board[0][7].piece === PieceType.TOWER &&
+        engine.board[0][3].piece === PieceType.KING &&
         !engine.board[0][7].hasMoved &&
         !engine.board[0][3].hasMoved)
         return true;
-    if (player === chess.PieceColor.BLACK &&
-        engine.board[7][4].piece === chess.PieceType.EMPTY &&
-        engine.board[7][5].piece === chess.PieceType.EMPTY &&
-        engine.board[7][6].piece === chess.PieceType.EMPTY &&
-        engine.board[7][7].piece === chess.PieceType.TOWER &&
-        engine.board[7][3].piece === chess.PieceType.KING &&
+    if (player === PieceColor.BLACK &&
+        engine.board[7][4].piece === PieceType.EMPTY &&
+        engine.board[7][5].piece === PieceType.EMPTY &&
+        engine.board[7][6].piece === PieceType.EMPTY &&
+        engine.board[7][7].piece === PieceType.TOWER &&
+        engine.board[7][3].piece === PieceType.KING &&
         !engine.board[7][7].hasMoved &&
         !engine.board[7][3].hasMoved)
         return true;
@@ -354,12 +377,12 @@ function checkCheck(engine, color) {
     let allCasesEnnemyCanReach = [];
     for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
-            if (engine.board[i][j].color !== color && engine.board[i][j].piece !== chess.PieceType.EMPTY) {
+            if (engine.board[i][j].color !== color && engine.board[i][j].piece !== PieceType.EMPTY) {
                 let moves = getAllPossibleMoves(engine, i, j);
                 if (moves !== undefined)
                     moves.forEach(move => allCasesEnnemyCanReach.push(move));
             }
-            if (engine.board[i][j].color === color && engine.board[i][j].piece === chess.PieceType.KING) {
+            if (engine.board[i][j].color === color && engine.board[i][j].piece === PieceType.KING) {
                 targetX = i;
                 targetY = j;
             }
@@ -395,10 +418,19 @@ function checkCheckMate(engine, color) {
     }
     return true;
 }
-
+/*
 let engine = getNewGame();
-engine.board[6][3].piece = chess.PieceType.QUEEN;
-engine.board[6][3].color = chess.PieceColor.WHITE;
+engine.board[6][3].piece = PieceType.QUEEN;
+engine.board[6][3].color = PieceColor.WHITE;
 printBoard(engine);
 console.log(checkCheckMate(engine, 0));
 printBoard(engine);
+*/
+
+if(typeof exports != 'undefined') {
+    exports.PieceType = PieceType;
+    exports.PieceColor = PieceColor;
+    exports.cell = cell;
+    exports.newMove = newMove;
+    exports.getNewGame = getNewGame;
+}
