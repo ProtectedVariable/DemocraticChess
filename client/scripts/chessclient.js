@@ -8,6 +8,7 @@ let id = -1;
 let socket;
 let open = false;
 let name = "";
+let board;
 
 function getTeamName(i) {
     if(i === PieceColor.WHITE) {
@@ -27,7 +28,6 @@ function addPlayer(name, team) {
 }
 
 function onMessageReceived(msg) {
-    console.log(msg.data);
     let message = JSON.parse(msg.data).message;
     switch(message.type) {
         case messageType.ID:
@@ -41,6 +41,10 @@ function onMessageReceived(msg) {
             break;
         case messageType.INCOMING_CHAT:
             addToChat(message.params.sender, message.params.message);
+            break;
+        case messageType.BOARD:
+            board = message.params.board;
+            refreshGame(board);
             break;
     }
 }

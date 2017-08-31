@@ -6,13 +6,22 @@ const textColor = "#777777";
 const tileSize = 83;
 
 let ctx;
+let canvas;
 
-
-function renderPieces(ctx, board) {
-
+function refreshGame(board) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    renderBoard();
+    console.log(board);
+    board.forEach(function(line, y) {
+        line.forEach(function(item, x) {
+            if(item.piece !== PieceType.EMPTY) {
+                ctx.drawImage(images[item.color*10+item.piece], x*tileSize, y*tileSize, tileSize, tileSize);
+            }
+        });
+    });
 }
 
-function renderBoard(ctx) {
+function renderBoard() {
     let x = 0;
     let y = 0;
     while(x < 8 && y < 8) {
@@ -39,13 +48,17 @@ function renderBoard(ctx) {
 }
 
 function init() {
-    let canvas = document.getElementById("chessboard");
+    canvas = document.getElementById("chessboard");
     ctx = canvas.getContext("2d");
     ctx.font = "20px Arial";
     renderBoard(ctx);
     let name = "";
-    while(name == null || name === "") {
+    while(name === "") {
         name = prompt("Please enter your nickname");
+    }
+    if(name == null) {
+        window.location.replace("http://google.com");
+        return;
     }
     connect(name);
     return ctx;
