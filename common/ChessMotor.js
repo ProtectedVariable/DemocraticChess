@@ -435,7 +435,7 @@ function checkCheckMate(engine, color) {
     return true;
 }
 
-let engine = getNewGame();
+//let engine = getNewGame();
 // engine.board[6][3].piece = PieceType.QUEEN;
 // engine.board[6][3].color = PieceColor.WHITE;
 // engine.board[7][2] = getEmptyCase();
@@ -458,7 +458,13 @@ let engine = getNewGame();
 // console.log(getAllPossibleMoves(engine, 7, 3));
 // printBoard(engine);
 //
-// console.log(checkCheckMate(engine, PieceColor.BLACK));
+// console.log(checkChe-ckMate(engine, PieceColor.BLACK));
 
 
- 
+if(typeof exports != 'undefined') {
+    exports.PieceType = PieceType;
+    exports.PieceColor = PieceColor;
+    exports.cell = cell;
+    exports.newMove = newMove;
+    exports.getNewGame = getNewGame;
+}

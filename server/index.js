@@ -7,18 +7,15 @@ const server = new webSocket.Server({port: 8080, family: 4});
 
 let clients = [];
 
+let board = chess.getNewGame();
 
-//TODO: Store board/engine here, clear board only at start of server or when there's nobody left
 
 //TODO: add keep alive detection
 
 function client(socket, id, player) {
-    let user = {socket,id,player};
+    let user = {socket, id, player};
     return user;
 }
-
-//TODO We should have a client object that contains the socket, id and a player object
-//The player object would contain all public info (sent to clients), like name, team and score
 
 function player(pseudo) {
     let user = {name: pseudo, team: undefined};
@@ -65,17 +62,22 @@ function parseMessage(data) {
     let id = content.id;
     let message = content.message;
     console.log(message);
-    //console.log(players[id]);
 
     if (clients[id] !== undefined) {
         console.log("VALID");
-        let player = clients[id].player;
+        let client = clients[id];
+        let player = client.player;
 
         if (message.type === comm.messageType.NAME) {
             //we could check if it has already a name
             player.name = message.params;
             console.log(`New player for id ${id} is ${player.name} of team ${player.team}`);
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, player)));
+
+            //send initial info about the game
+            console.log(`Sending board to ${player.name}`);
+            client.socket.send(comm.communication(-1,comm.newMessage(comm.messageType.BOARD,board)));
+
         } else if (message.type === comm.messageType.MOVE) {
             //This is a vote for movement
         } else if (message.type === comm.messageType.CHAT) {
@@ -105,7 +107,10 @@ server.on("connection", (ws) => {
                 //send player left message and remove from array
                 console.log(`Player with id ${id} disconnected`);
             }
-        })
+        });
+        if (clients.length === 0) {
+            board = chess.getNewGame();
+        }
     });
     console.log(`New connection from ${user.id}`);
     ws.send(comm.communication(-1, comm.newMessage(comm.messageType.ID, user.id)));
