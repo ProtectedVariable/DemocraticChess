@@ -10,6 +10,16 @@ let clients = [];
 let board = chess.getNewGame();
 
 
+function sendComm(socket, communication) {
+    try {
+        socket.send(communication);
+    } catch (e) {
+        //we could delete the socket causing problem
+        console.warn("Couldn't send to someone");
+    }
+}
+
+
 //TODO: add keep alive detection
 
 function client(socket, id, player) {
@@ -43,15 +53,16 @@ function player(pseudo) {
 function broadcastToAll(communication) {
     server.clients.forEach(client => {
         if (client !== server && client.readyState === webSocket.OPEN) {
-            client.send(communication);
+            sendComm(client,communication);
+            //client.send(communication);
         }
     })
 }
 
 function broadcastToTeam(communication, team) {
     let members = clients.filter(client => client.player.team === team);
-
-    members.forEach(member => member.socket.send(communication));
+    members.forEach(member => sendComm(member.socket,communication));
+    //members.forEach(member => member.socket.send(communication));
 }
 
 function parseMessage(data) {
@@ -76,7 +87,7 @@ function parseMessage(data) {
 
             //send initial info about the game
             console.log(`Sending board to ${player.name}`);
-            client.socket.send(comm.communication(-1,comm.newMessage(comm.messageType.BOARD,board)));
+            client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, board)));
 
         } else if (message.type === comm.messageType.MOVE) {
             //This is a vote for movement
