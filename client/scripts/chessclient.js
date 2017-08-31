@@ -41,7 +41,7 @@ function getTeamName(i) {
 }
 
 function addToChat(sender, message) {
-    document.getElementById("chat").innerHTML += "<br/><b>"+sender+"</b>: "+message;
+    document.getElementById("chat").innerHTML += `<br/><b>${sender}</b>: ${message}`;
     document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
 }
 
@@ -67,6 +67,11 @@ function onMessageReceived(msg) {
         case messageType.BOARD:
             board = message.params.board;
             refreshGame(board);
+            break;
+        case messageType.PLAYER_LEFT:
+            let playerLeaving = message.params;
+            addToChat("Server",`Player ${playerLeaving.name} left`);
+            //TODO remove player
             break;
     }
 }

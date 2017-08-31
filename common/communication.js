@@ -24,7 +24,7 @@ function communication(id, message) {
 }
 
 function chat(sender, message) {
-    return {sender: sender.name, message: message};
+    return {sender: sender === undefined ? "Server" : sender.name, message: message};
 }
 
 

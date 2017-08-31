@@ -17,10 +17,10 @@ const PieceColor = {
 
 function getEmptyCase() {
     return {
-		piece: PieceType.EMPTY,
-    	color: undefined,
-    	hasMoved: undefined
-	};
+        piece: PieceType.EMPTY,
+        color: undefined,
+        hasMoved: undefined
+    };
 }
 
 function cell(x, y) {
@@ -32,6 +32,7 @@ function newMove(startCell, endCell) {
 }
 
 function getNewGame() {
+    //TODO define if we have an engine or directly just the board?
     let game = {
         board: [[0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
@@ -41,7 +42,7 @@ function getNewGame() {
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0]]
-    }
+    };
 
     game.board.forEach(function (el, i) {
         el.forEach(function (element, j) {
@@ -314,14 +315,14 @@ function getAllPossibleMoves(board, y, x) {
                 else
                     result.push([7, 1]);
             }
-			if (isGreatCastlingPossible(engine, test.color)) {
+            if (isGreatCastlingPossible(engine, test.color)) {
                 if (test.color === PieceColor.WHITE)
                     result.push([0, 5]);
                 else
                     result.push([7, 5]);
             }
 
-			result = result.filter(testIfKingIsSuicidal(engine, x, y));
+            result = result.filter(testIfKingIsSuicidal(engine, x, y));
             break;
     }
     if (result.length > 0)
@@ -331,12 +332,12 @@ function getAllPossibleMoves(board, y, x) {
 }
 
 function testIfKingIsSuicidal(engine, kingX, kingY) {
-	return function(proposed) {
-		let copy = getBoardCopy(engine);
-		move(copy, kingX, kingY, proposed[0], proposed[1]);
-		let result = !checkCheck(copy, copy.board[proposed[0]][proposed[1]].color);
-		return result;
-	}
+    return function (proposed) {
+        let copy = getBoardCopy(engine);
+        move(copy, kingX, kingY, proposed[0], proposed[1]);
+        let result = !checkCheck(copy, copy.board[proposed[0]][proposed[1]].color);
+        return result;
+    }
 }
 
 
@@ -417,8 +418,8 @@ function checkCheckMate(engine, color) {
             if (engine.board[i][j].color === color) {
                 let engineCopy = getBoardCopy(engine);
                 let moves = getAllPossibleMoves(engineCopy, i, j);
-				if(moves === undefined)
-					continue;
+                if (moves === undefined)
+                    continue;
                 moves.forEach(possibleMove => {
                     move(engineCopy, i, j, possibleMove[0], possibleMove[1]);
                     result = checkCheck(engineCopy, color);
@@ -460,7 +461,7 @@ function checkCheckMate(engine, color) {
 // console.log(checkChe-ckMate(engine, PieceColor.BLACK));
 
 
-if(typeof exports != 'undefined') {
+if (typeof exports != 'undefined') {
     exports.PieceType = PieceType;
     exports.PieceColor = PieceColor;
     exports.cell = cell;

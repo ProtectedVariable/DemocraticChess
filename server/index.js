@@ -8,15 +8,17 @@ const server = new webSocket.Server({port: 8080, family: 4});
 let clients = [];
 
 let board = chess.getNewGame();
+setTimeout(sendWaitingMessage, 1000 * 10);
 
-
-function sendComm(socket, communication) {
-    try {
-        socket.send(communication);
-    } catch (e) {
-        //we could delete the socket causing problem
-        console.warn("Couldn't send to someone");
+function sendWaitingMessage() {
+    console.log(clients.length);
+    if (clients.length === 1) {
+        console.log("Sending waiting message");
+        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, "Waiting for another player"))));
+    } else {
+        console.log("No need to send waiting message");
     }
+    setTimeout(sendWaitingMessage, 1000 * 10);
 }
 
 
@@ -53,16 +55,14 @@ function player(pseudo) {
 function broadcastToAll(communication) {
     server.clients.forEach(client => {
         if (client !== server && client.readyState === webSocket.OPEN) {
-            sendComm(client,communication);
-            //client.send(communication);
+            client.send(communication);
         }
     })
 }
 
 function broadcastToTeam(communication, team) {
     let members = clients.filter(client => client.player.team === team);
-    members.forEach(member => sendComm(member.socket,communication));
-    //members.forEach(member => member.socket.send(communication));
+    members.forEach(member => member.socket.send(communication));
 }
 
 function parseMessage(data) {
@@ -86,8 +86,16 @@ function parseMessage(data) {
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, player)));
 
             //send initial info about the game
+            //TODO check if we send board or engine here
             console.log(`Sending board to ${player.name}`);
             client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, board)));
+
+
+            //sending player list
+            console.log(`Sending player list to ${player.name}`);
+            let playersList = clients.map(client => client.player);
+            client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.LIST, playersList)));
+
 
         } else if (message.type === comm.messageType.MOVE) {
             //This is a vote for movement
@@ -113,14 +121,16 @@ server.on("connection", (ws) => {
 
     ws.on("message", parseMessage);
     ws.on("close", () => {
-        clients.forEach(client => {
+        clients.forEach((client,index) => {
             if (client.socket === ws) {
-                //send player left message and remove from array
                 console.log(`Player with id ${id} disconnected`);
+                broadcastToAll(comm.communication(-1,comm.newMessage(comm.messageType.PLAYER_LEFT,client.player)));
+                clients.splice(index,1);
             }
         });
         if (clients.length === 0) {
             board = chess.getNewGame();
+            //relaunch setTimeOut;
         }
     });
     console.log(`New connection from ${user.id}`);
