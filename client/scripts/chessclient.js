@@ -65,7 +65,7 @@ function connect(lname) {
     sendID();
 }
 
-function handleMessage(e, tagId) {
+function handleChatMessage(e, tagId) {
     if(e.which == 13 || e.keyCode == 13) {
         let msg = document.getElementById(tagId).value;
         if(msg !== "") {
