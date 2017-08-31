@@ -12,7 +12,7 @@ const messageType = {
     CHANGE: 10,
     NEW_PLAYER: 11,
     PLAYER_LEFT: 12,
-    ID:13,
+    ID: 13,
 };
 
 function newMessage(type, params) {
@@ -22,8 +22,15 @@ function newMessage(type, params) {
 function communication(id, message) {
     return JSON.stringify({id, message});
 }
-if(typeof exports != 'undefined') {
+
+function chat(sender, message) {
+    return {sender: sender.name, message: message};
+}
+
+
+if (typeof exports != 'undefined') {
     exports.messageType = messageType;
     exports.newMessage = newMessage;
     exports.communication = communication;
+    exports.chat = chat;
 }

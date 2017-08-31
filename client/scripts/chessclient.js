@@ -1,6 +1,7 @@
 "use strict";
 
 const SERVER_URL = "ws://172.20.0.208:8080";
+//const SERVER_URL = "ws://localhost:8080";
 let team = -1;
 let connected = false;
 let id = -1;

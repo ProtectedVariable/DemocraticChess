@@ -1,12 +1,21 @@
 "use strict";
 const webSocket = require("ws");
 const comm = require("../common/communication.js");
-const chess = require("../common/chess.js");
+const chess = require("../common/ChessMotor.js");
 
 const server = new webSocket.Server({port: 8080, family: 4});
 
-var players = [];
+let players = [];
 
+
+//TODO: Store board/engine here, clear board only at start of server or when there's nobody left
+
+//TODO: add keep alive detection
+
+
+
+//TODO We should have a client object that contains the socket, id and a player object
+//The player object would contain all public info (sent to clients), like name, team and score
 
 function player(socket, id, pseudo) {
     let user = {socket: socket, id: id, name: pseudo, team: undefined};
@@ -40,9 +49,9 @@ function broadcastToAll(communication) {
 }
 
 function broadcastToTeam(communication, team) {
-    let team = players.filter(player => player.team === team);
+    let members = players.filter(player => player.team === team);
 
-    team.forEach(member => member.socket.send(communication));
+    members.forEach(member => member.socket.send(communication));
 }
 
 function parseMessage(data) {
@@ -51,23 +60,26 @@ function parseMessage(data) {
     console.log(content);
 
     let id = content.id;
-    let message = JSON.parse(content.message);
+    let message = content.message;
     console.log(message);
     //console.log(players[id]);
 
     if (players[id] !== undefined) {
+        console.log("VALID");
         let player = players[id];
 
         if (message.type === comm.messageType.NAME) {
             //we could check if it has already a name
             player.name = message.params;
             console.log(`New player for id ${id} is ${player.name} of team ${player.team}`);
+            //change this to send player object but without critical info (like socket and ID)
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, [player.name, player.team])));
         } else if (message.type === comm.messageType.MOVE) {
             //This is a vote for movement
-        } else if (message.type === message.CHAT) {
+        } else if (message.type === comm.messageType.CHAT) {
             //This is a chat from a client
             console.log(`New message from ${player.name}: ${message.params}`);
+            broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(player, message.params))), player.team);
         }
 
     }
@@ -75,7 +87,7 @@ function parseMessage(data) {
 }
 
 
-server.on("connection", function connection(ws, req) {
+server.on("connection", (ws) => {
 
     //On connection, will join team and add to player list (assign team)
     //Generate a random ID and send it, so the client will send it with their messages
@@ -85,7 +97,7 @@ server.on("connection", function connection(ws, req) {
     players.push(user);
 
     ws.on("message", parseMessage);
-    ws.on("close", closeEvent => {
+    ws.on("close", () => {
         players.forEach(player => {
             if (player.socket === ws) {
                 //send player left message and remove from array
