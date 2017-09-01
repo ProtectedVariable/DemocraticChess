@@ -2,8 +2,13 @@
 const webSocket = require("ws");
 const comm = require("../common/communication.js");
 const chess = require("../common/ChessMotor.js");
+const logger = require("log");
+const ip = require("ip");
+
+let log = new logger("debug");
 
 const server = new webSocket.Server({port: 8080, family: 4});
+console.info(`Server is alive on IP ${ip.address()}`);
 
 let clients = [];
 
@@ -11,13 +16,10 @@ let board = chess.getNewGame();
 setTimeout(sendWaitingMessage, 1000 * 10);
 
 function sendWaitingMessage() {
-    console.log(clients.length);
-    if (clients.length === 1) {
-        console.log("Sending waiting message");
+    if (clients.length === 1 || clients.filter(client => client.player.team === chess.PieceColor.BLACK).length === 0 || clients.filter(client => client.player.team === chess.PieceColor.WHITE).length === 0) {
         broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, "Waiting for another player"))));
-    } else {
-        console.log("No need to send waiting message");
     }
+    //launch if one team is empty as well
     setTimeout(sendWaitingMessage, 1000 * 10);
 }
 
@@ -68,40 +70,50 @@ function broadcastToTeam(communication, team) {
 function parseMessage(data) {
 
     let content = JSON.parse(data);
-    console.log(content);
 
     let id = content.id;
     let message = content.message;
-    console.log(message);
 
     if (clients[id] !== undefined) {
-        console.log("VALID");
         let client = clients[id];
         let player = client.player;
 
         if (message.type === comm.messageType.NAME) {
             //we could check if it has already a name
+            //TODO check if we already have a user with the same name and send a flag back
             player.name = message.params;
-            console.log(`New player for id ${id} is ${player.name} of team ${player.team}`);
+            log.info(`New player for id ${id} is ${player.name} of team ${player.team}`);
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, player)));
 
             //send initial info about the game
             //TODO check if we send board or engine here
-            console.log(`Sending board to ${player.name}`);
+
+            log.info(`Sending board to ${player.name}`);
             client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, board)));
 
 
             //sending player list
-            console.log(`Sending player list to ${player.name}`);
+            log.info(`Sending player list to ${player.name}`);
             let playersList = clients.map(client => client.player);
             client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.LIST, playersList)));
+
+            //sending team to player
+            log.info(`Sending team to player ${player.name}`);
+            client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.TEAM, player.team)));
 
 
         } else if (message.type === comm.messageType.MOVE) {
             //This is a vote for movement
+            //redirect to all for now
+
+            //TODO move in our instance of the board
+            log.info(`Received a move ${message.params}`);
+            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, message.params)));
+
+
         } else if (message.type === comm.messageType.CHAT) {
             //This is a chat from a client
-            console.log(`New message from ${player.name}: ${message.params}`);
+            log.info(`New message from ${player.name}: ${message.params}`);
             broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(player, message.params))), player.team);
         }
 
@@ -121,18 +133,17 @@ server.on("connection", (ws) => {
 
     ws.on("message", parseMessage);
     ws.on("close", () => {
-        clients.forEach((client,index) => {
+        clients.forEach((client, index) => {
             if (client.socket === ws) {
-                console.log(`Player with id ${id} disconnected`);
-                broadcastToAll(comm.communication(-1,comm.newMessage(comm.messageType.PLAYER_LEFT,client.player)));
-                clients.splice(index,1);
+                log.info(`Player ${client.player.name} with id ${id} disconnected`);
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.PLAYER_LEFT, client.player)));
+                clients.splice(index, 1);
             }
         });
         if (clients.length === 0) {
             board = chess.getNewGame();
-            //relaunch setTimeOut;
         }
     });
-    console.log(`New connection from ${user.id}`);
+    log.info(`New connection from ${user.id}`);
     ws.send(comm.communication(-1, comm.newMessage(comm.messageType.ID, user.id)));
 });

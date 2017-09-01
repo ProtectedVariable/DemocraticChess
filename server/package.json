@@ -10,6 +10,8 @@
   "author": "Maxime Lovino, Vincent Tournier, Thomas Ibanez",
   "license": "ISC",
   "dependencies": {
+    "ip": "^1.1.5",
+    "log": "^1.4.0",
     "nodemon": "^1.11.0",
     "ws": "^3.1.0"
   }
