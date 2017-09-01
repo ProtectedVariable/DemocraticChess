@@ -72,13 +72,28 @@ function addToChat(sender, message) {
     document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
 }
 
-function addPlayer(name, team) {
-    document.getElementById("chat").value;
+function removePlayer(player) {
+    addToChat("Server",`Player ${player.name} left`);
+    let elem = document.getElementById(player.name);
+    elem.parentNode.removeChild(elem);
+}
+
+function addPlayer(player) {
+    addToChat("Server", "Player "+player.name+" has joined team "+getTeamName(player.team));
+    if(player.name !== name) {
+        document.getElementById("info").innerHTML += '<li id="'+player.name+'" class="'+getTeamName(player.team)+'">'+player.name+"</li>";
+    }
 }
 
 function applyMove(mv) {
     move(board, mv.startCell.y, mv.startCell.x, mv.endCell.y, mv.endCell.x);
     refreshGame(board);
+}
+
+function setPlayerList(lst) {
+    lst.forEach(function(player) {
+        document.getElementById("info").innerHTML += '<li id="'+player.name+'" class="'+getTeamName(player.team)+'">'+player.name+"</li>";
+    });
 }
 
 function onMessageReceived(msg) {
@@ -90,8 +105,7 @@ function onMessageReceived(msg) {
             break;
         case messageType.NEW_PLAYER:
             let player = message.params;
-            addToChat("Server", "Player "+player.name+" has joined team "+getTeamName(player.team));
-            addPlayer(message.params[0], message.params[1]);
+            addPlayer(player);
             break;
         case messageType.INCOMING_CHAT:
             addToChat(message.params.sender, message.params.message);
@@ -102,14 +116,16 @@ function onMessageReceived(msg) {
             break;
         case messageType.PLAYER_LEFT:
             let playerLeaving = message.params;
-            addToChat("Server",`Player ${playerLeaving.name} left`);
-            //TODO remove player
+            removePlayer(playerLeaving);
             break;
         case messageType.TEAM:
             team = message.params;
             break;
         case messageType.MOVED:
             applyMove(message.params);
+            break;
+        case messageType.LIST:
+            setPlayerList(message.params);
             break;
     }
 }

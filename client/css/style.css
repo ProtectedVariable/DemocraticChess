@@ -33,7 +33,7 @@ textarea {
     resize: none;
     pointer-events: none;
     margin-top: 16%;
-    height: 80px;
+    height: 500px;
     cursor: default;
     text-align: left;
     background-color: #eeeeee;
@@ -43,6 +43,20 @@ textarea {
 #message {
     width: 100%;
     margin-right: 5px;
+}
+
+ul {
+    list-style: none;
+}
+
+.black::before {
+    content: "⬤ ";
+    color: black;
+}
+
+.white::before {
+    content: "⬤ ";
+    color: white;
 }
 
 body {
