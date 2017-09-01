@@ -115,7 +115,7 @@ function getNewGame() {
                 return eaten;
         },
 
-        getAllPossibleMoves: function (cell) {
+        getAllPossibleMoves: function(cell) {
             let test = this.board[cell.x][cell.y];
             let result = [];
             if (test.piece === PieceType.EMPTY)
@@ -128,9 +128,9 @@ function getNewGame() {
                                 result.push(newCell(cell.x + 2, cell.y));
                             result.push(newCell(cell.x + 1, cell.y));
                         }
-                        if (cell.y + 1 < 8 && this.board[cell.x + 1][cell.y + 1].color === (PieceType.EMPTY + 1) % 2)
+                        if (cell.y + 1 < 8 && this.board[cell.x + 1][cell.y + 1].color === PieceColor.BLACK)
                             result.push(newCell(cell.x + 1, cell.y + 1));
-                        if (cell.y - 1 >= 0 && this.board[cell.x + 1][cell.y - 1].color === (PieceType.EMPTY + 1) % 2)
+                        if (cell.y - 1 >= 0 && this.board[cell.x + 1][cell.y - 1].color === PieceColor.BLACK)
                             result.push(newCell(cell.x + 1, cell.y - 1));
                     }
                     else {
@@ -139,16 +139,16 @@ function getNewGame() {
                                 result.push(newCell(cell.x - 2, cell.y));
                             result.push(newCell(cell.x - 1, cell.y));
                         }
-                        if (cell.y + 1 < 8 && this.board[cell.x - 1][cell.y + 1].color === (PieceType.EMPTY + 1) % 2)
+                        if (cell.y + 1 < 8 && this.board[cell.x - 1][cell.y + 1].color === PieceColor.WHITE)
                             result.push(newCell(cell.x - 1, cell.y + 1));
-                        if (cell.y - 1 >= 0 && this.board[cell.x - 1][cell.y - 1].color === (PieceType.EMPTY + 1) % 2)
+                        if (cell.y - 1 >= 0 && this.board[cell.x - 1][cell.y - 1].color === PieceColor.WHITE)
                             result.push(newCell(cell.x - 1, cell.y - 1));
                     }
                     break;
                 case PieceType.TOWER:
                 case PieceType.QUEEN:
                     let s = cell.x + 1;
-                    while (s < 8) {
+                    while(s < 8) {
                         if (this.board[s][cell.y].color === test.color)
                             break;
                         result.push(newCell(s, cell.y));
@@ -166,20 +166,20 @@ function getNewGame() {
                         s--;
                     }
                     s = cell.y + 1;
-                    while (s < 8) {
-                        if (this.board[cell.x][s].color === test.color)
+                    while(s < 8) {
+                        if(this.board[cell.x][s].color === test.color)
                             break;
                         result.push(newCell(cell.x, s));
-                        if (this.board[s][cell.y].piece !== PieceType.EMPTY)
+                        if(this.board[cell.x][s].piece !== PieceType.EMPTY)
                             break;
                         s++;
                     }
                     s = cell.y - 1;
-                    while (s >= 0) {
-                        if (this.board[cell.x][s].color === test.color)
+                    while(s >= 0) {
+                        if(this.board[cell.x][s].color === test.color)
                             break;
                         result.push(newCell(cell.x, s));
-                        if (this.board[s][cell.y].piece !== PieceType.EMPTY)
+                        if(this.board[cell.x][s].piece !== PieceType.EMPTY)
                             break;
                         s--;
                     }
