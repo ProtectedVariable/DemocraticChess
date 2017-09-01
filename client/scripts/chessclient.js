@@ -10,22 +10,49 @@ let open = false;
 let name = "";
 let board;
 let mouseCoord;
+let selectedPiece;
+let lastMoves;
+let lastX, lastY;
 
 function handleClick() {
     refreshGame(board);
     let y = Math.floor(mouseCoord.y / tileSize);
     let x = Math.floor(mouseCoord.x / tileSize);
-    let selectedPiece = board[y][x];
+    let selected = board[y][x];
     let moves = getAllPossibleMoves(board, x, y);
-    if(moves !== undefined) {
-        moves.forEach(function(move) {
-            highlightTile(move[1], move[0]);
-        });
+    if(selected.color === team) {
+        if(moves !== undefined) {
+            moves.forEach(function(move) {
+                highlightTile(move[1], move[0]);
+            });
+        }
     }
+    let voteOK = false;
+    //if we clicked an empty tile or an enemy tile, and we had a piece selected, and the piece had possible moves
+    if(selected === undefined || selected.color !== team) {
+        if(selectedPiece !== undefined && selectedPiece.color === team) {
+            if(lastMoves !== undefined) {
+                //check if selected tile is part of the possible moves
+                lastMoves.forEach(function(move) {
+                    if(move[1] === x && move[0] === y) {
+                        voteOK = true;
+                    }
+                });
+
+                if(voteOK) {
+                    sendMove(lastX, lastY, x, y);
+                }
+            }
+        }
+    }
+    lastX = x;
+    lastY = y;
+    selectedPiece = selected;
+    lastMoves = moves;
 }
 
 function getMousePos(canvas, e) {
-    var rect = canvas.getBoundingClientRect();
+    let rect = canvas.getBoundingClientRect();
     return {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
@@ -46,7 +73,12 @@ function addToChat(sender, message) {
 }
 
 function addPlayer(name, team) {
-    document.getElementById("chat").value
+    document.getElementById("chat").value;
+}
+
+function applyMove(mv) {
+    move(board, mv.startCell.y, mv.startCell.x, mv.endCell.y, mv.endCell.x);
+    refreshGame(board);
 }
 
 function onMessageReceived(msg) {
@@ -73,7 +105,18 @@ function onMessageReceived(msg) {
             addToChat("Server",`Player ${playerLeaving.name} left`);
             //TODO remove player
             break;
+        case messageType.TEAM:
+            team = message.params;
+            break;
+        case messageType.MOVED:
+            applyMove(message.params);
+            break;
     }
+}
+
+function sendMove(bx, by, tx, ty) {
+    let move = newMove(cell(bx, by), cell(tx, ty));
+    socket.send(communication(id, newMessage(messageType.MOVE, move)));
 }
 
 function sendID() {
@@ -93,13 +136,13 @@ function connect(lname) {
     };
     socket.onopen = function() {
         open = true;
-    }
+    };
     name = lname;
     sendID();
 }
 
 function handleChatMessage(e, tagId) {
-    if(e.which == 13 || e.keyCode == 13) {
+    if(e.which === 13 || e.keyCode === 13) {
         let msg = document.getElementById(tagId).value;
         if(msg !== "") {
             socket.send(communication(id, newMessage(messageType.CHAT, msg)));

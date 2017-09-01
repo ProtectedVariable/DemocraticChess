@@ -3,7 +3,7 @@
 const color1 = "#f0d9b5";
 const color2 = "#b58863";
 const textColor = "#777777";
-const highlightColor =  "#00BB00";
+const highlightColor =  "#00CC00";
 const highlightBorder = 6;
 const tileSize = 83;
 
