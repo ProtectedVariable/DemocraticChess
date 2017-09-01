@@ -12,7 +12,8 @@ console.info(`Server is alive on IP ${ip.address()}`);
 
 let clients = [];
 
-let board = chess.getNewGame();
+let engine = chess.getNewGame;
+
 setTimeout(sendWaitingMessage, 1000 * 10);
 
 function sendWaitingMessage() {
@@ -89,7 +90,7 @@ function parseMessage(data) {
             //TODO check if we send board or engine here
 
             log.info(`Sending board to ${player.name}`);
-            client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, board)));
+            client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));
 
 
             //sending player list
@@ -141,7 +142,7 @@ server.on("connection", (ws) => {
             }
         });
         if (clients.length === 0) {
-            board = chess.getNewGame();
+            engine = chess.getNewGame();
         }
     });
     log.info(`New connection from ${user.id}`);

@@ -450,7 +450,7 @@ function getNewGame() {
 if (typeof exports != 'undefined') {
     exports.PieceType = PieceType;
     exports.PieceColor = PieceColor;
-    exports.cell = cell;
+    exports.newCell = newCell;
     exports.newMove = newMove;
     exports.getNewGame = getNewGame;
 }
