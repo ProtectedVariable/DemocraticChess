@@ -108,8 +108,9 @@ function parseMessage(data) {
             //redirect to all for now
 
             //TODO move in our instance of the board
-            log.info(`Received a move ${message.params}`);
-            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, message.params)));
+            let movement = message.params;
+            log.info(`Received a move ${movement}`);
+            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
 
 
         } else if (message.type === comm.messageType.CHAT) {
