@@ -8,39 +8,43 @@ let id = -1;
 let socket;
 let open = false;
 let name = "";
-let board;
+let engine;
 let mouseCoord;
 let selectedPiece;
 let lastMoves;
 let lastX, lastY;
 
 function handleClick() {
-    refreshGame(board);
+    refreshGame(engine.board);
     let y = Math.floor(mouseCoord.y / tileSize);
     let x = Math.floor(mouseCoord.x / tileSize);
-    let selected = board[y][x];
-    let moves = getAllPossibleMoves(board, x, y);
+    let selected = engine.board[y][x];
+    let moves = engine.getAllPossibleMoves(newCell(y, x));
     if(selected.color === team) {
         if(moves !== undefined) {
             moves.forEach(function(move) {
-                highlightTile(move[1], move[0]);
+                highlightTile(move.y, move.x);
             });
         }
     }
     let voteOK = false;
     //if we clicked an empty tile or an enemy tile, and we had a piece selected, and the piece had possible moves
-    if(selected === undefined || selected.color !== team) {
-        if(selectedPiece !== undefined && selectedPiece.color === team) {
+    if(selected.piece === PieceType.EMPTY || selected.color !== team) {
+        console.log("1");
+        if(selectedPiece.piece !== PieceType.EMPTY && selectedPiece.color === team) {
+            console.log("2");
             if(lastMoves !== undefined) {
+                console.log("3");
                 //check if selected tile is part of the possible moves
                 lastMoves.forEach(function(move) {
-                    if(move[1] === x && move[0] === y) {
+                    if(move.x === y && move.y === x) {
                         voteOK = true;
                     }
                 });
 
                 if(voteOK) {
-                    sendMove(lastX, lastY, x, y);
+                    console.log("Sending move");
+                    sendMove(lastY, lastX, y, x);
                 }
             }
         }
@@ -86,8 +90,8 @@ function addPlayer(player) {
 }
 
 function applyMove(mv) {
-    move(board, mv.startCell.y, mv.startCell.x, mv.endCell.y, mv.endCell.x);
-    refreshGame(board);
+    engine.move(mv);
+    refreshGame(engine.board);
 }
 
 function setPlayerList(lst) {
@@ -111,8 +115,10 @@ function onMessageReceived(msg) {
             addToChat(message.params.sender, message.params.message);
             break;
         case messageType.BOARD:
-            board = message.params.board;
-            refreshGame(board);
+            engine = getNewGame();
+            engine.setBoard(message.params);
+            console.log(message.params);
+            refreshGame(engine.board);
             break;
         case messageType.PLAYER_LEFT:
             let playerLeaving = message.params;
@@ -131,7 +137,7 @@ function onMessageReceived(msg) {
 }
 
 function sendMove(bx, by, tx, ty) {
-    let move = newMove(cell(bx, by), cell(tx, ty));
+    let move = newMove(newCell(bx, by), newCell(tx, ty));
     socket.send(communication(id, newMessage(messageType.MOVE, move)));
 }
 
