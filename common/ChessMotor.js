@@ -48,6 +48,10 @@ function getNewGame() {
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0]],
 
+		setBoard : function(givenBoard) {
+			board = givenBoard;
+		},
+
 		printBoard : function() {
 		    this.board.forEach(line => {
 		        let lineString = "";
