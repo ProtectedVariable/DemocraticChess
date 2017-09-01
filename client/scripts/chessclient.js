@@ -23,18 +23,15 @@ function handleClick() {
     if(selected.color === team) {
         if(moves !== undefined) {
             moves.forEach(function(move) {
-                highlightTile(move.y, move.x);
+                highlightTile(move.y, move.x, (engine.board[move.x][move.y].piece !== PieceType.EMPTY));
             });
         }
     }
     let voteOK = false;
     //if we clicked an empty tile or an enemy tile, and we had a piece selected, and the piece had possible moves
     if(selected.piece === PieceType.EMPTY || selected.color !== team) {
-        console.log("1");
         if(selectedPiece.piece !== PieceType.EMPTY && selectedPiece.color === team) {
-            console.log("2");
             if(lastMoves !== undefined) {
-                console.log("3");
                 //check if selected tile is part of the possible moves
                 lastMoves.forEach(function(move) {
                     if(move.x === y && move.y === x) {
@@ -43,7 +40,6 @@ function handleClick() {
                 });
 
                 if(voteOK) {
-                    console.log("Sending move");
                     sendMove(lastY, lastX, y, x);
                 }
             }
@@ -105,7 +101,6 @@ function onMessageReceived(msg) {
     switch(message.type) {
         case messageType.ID:
             id = message.params;
-            console.log(id);
             break;
         case messageType.NEW_PLAYER:
             let player = message.params;
@@ -117,7 +112,6 @@ function onMessageReceived(msg) {
         case messageType.BOARD:
             engine = getNewGame();
             engine.setBoard(message.params);
-            console.log(message.params);
             refreshGame(engine.board);
             break;
         case messageType.PLAYER_LEFT:
