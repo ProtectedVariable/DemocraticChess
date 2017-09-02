@@ -12,12 +12,14 @@ console.info(`Server is alive on IP ${ip.address()}`);
 
 let clients = [];
 
-let engine = chess.getNewGame;
+let engine = chess.getNewGame();
+
+let currentTeam = chess.PieceColor.WHITE;
 
 setTimeout(sendWaitingMessage, 1000 * 10);
 
 function sendWaitingMessage() {
-    if (clients.length === 1 || clients.filter(client => client.player.team === chess.PieceColor.BLACK).length === 0 || clients.filter(client => client.player.team === chess.PieceColor.WHITE).length === 0) {
+    if (clients.length === 1 || clients.every(client => client.player.team === chess.PieceColor.BLACK) || clients.every(client => client.player.team === chess.PieceColor.WHITE)) {
         broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, "Waiting for another player"))));
     }
     //launch if one team is empty as well
@@ -106,11 +108,23 @@ function parseMessage(data) {
         } else if (message.type === comm.messageType.MOVE) {
             //This is a vote for movement
             //redirect to all for now
+            if (client.player.team == currentTeam) {
+                let movement = message.params;
+                log.info(`Received a move, sending it to players`);
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
+                //TODO we should check the validity and collect the votes here
+                log.info(`Making the move on the server`);
+                engine.move(movement);
 
-            //TODO move in our instance of the board
-            let movement = message.params;
-            log.info(`Received a move ${movement}`);
-            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
+                //TODO switch team now
+                currentTeam = currentTeam === chess.PieceColor.WHITE ? chess.PieceColor.BLACK : chess.PieceColor.WHITE;
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.TEAM, currentTeam)));
+                log.info(`Switching to team ${currentTeam}`);
+                //TODO remove this chat
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `Next team to play is ${currentTeam}`))));
+            }
+
+            //TODO we should think about voting for choice of promotion transformation
 
 
         } else if (message.type === comm.messageType.CHAT) {
@@ -143,6 +157,7 @@ server.on("connection", (ws) => {
             }
         });
         if (clients.length === 0) {
+            log.info("Everybody left, resetting the board");
             engine = chess.getNewGame();
         }
     });
