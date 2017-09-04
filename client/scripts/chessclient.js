@@ -2,10 +2,9 @@
 
 const BASE_TIME = 60;
 const PLAY_PAGE = `<div class="left">
-    <div id="chat">
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Welcome to the chat room<br/>
-    </div>
-    <input id="message" type="text" placeholder="Type your message here" onkeypress="handleChatMessage(event, 'message')"/>
+    <div>Welcome to the chat room</div>
+    <div id="chat"></div>
+    <input id="message" type="text" placeholder="Type your message here" onkeypress="client.handleChatMessage(event, 'message')"/>
 </div>
 <div class="center">
     <canvas id="chessboard" width="678" height="682" onclick="client.handleClick()"></canvas>
@@ -34,6 +33,10 @@ function nameOK() {
     canvas.addEventListener("mousemove", function(evt) {
             client.mouseCoord = client.getMousePos(canvas, evt);
     }, false);
+}
+
+function nameTaken() {
+    document.getElementById("loginfo").innerHTML = "This name is already taken, please choose another one";
 }
 
 image.loaded = 0;
@@ -79,7 +82,6 @@ function chessClient() {
         teamPlaying : -1,
 
         updateTimer : function() {
-            console.log(this.time);
             if(this.teamPlaying === this.team) {
                 this.time -= 1;
                 if(this.time < 0) {
@@ -184,7 +186,7 @@ function chessClient() {
             if(e.which === 13 || e.keyCode === 13) {
                 let msg = document.getElementById(tagId).value;
                 if(msg !== "") {
-                    socket.send(communication(id, newMessage(messageType.CHAT, msg)));
+                    this.socketClient.socket.send(communication(this.socketClient.id, newMessage(messageType.CHAT, msg)));
                     document.getElementById(tagId).value = "";
                 }
             }
@@ -200,6 +202,9 @@ function onMessageReceived(msg) {
             break;
         case messageType.PSEUDO_OK:
             nameOK();
+            break;
+        case messageType.PSEUDO_TAKEN:
+            nameTaken();
             break;
         case messageType.NEW_PLAYER:
             let player = message.params;
