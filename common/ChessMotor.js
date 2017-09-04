@@ -340,6 +340,11 @@ function getNewGame() {
             return false;
         },
 
+		promotePawn : function(cell, type) {
+			if(this.board[cell.x][cell.y].piece === PieceType.PAWN && type >= PieceType.TOWER && type <= PieceType.QUEEN)
+				this.board[cell.x][cell.y].piece = type;
+		},
+
         //Teste si le roi de la couleur color est en echec
         checkCheck: function (color) {
             let kingCell = undefined;
