@@ -6,31 +6,16 @@
       <link rel="stylesheet" href="css/style.css">
       <link href='https://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
 
-      <script type="text/javascript">
-      </script>
-
       <script src="../common/ChessMotor.js"></script>
       <script src="../common/communication.js"></script>
-      <script src="scripts/chessclient.js"></script>
-      <script src="scripts/chessrender.js"></script>
+      <script src="scripts/socketClient.js"></script>
+      <script src="scripts/chessRenderer.js"></script>
+      <script src="scripts/chessClient.js"></script>
   </head>
     <body>
-        <div class="left">
-            <div id="chat">
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Welcome to the chat room<br/>
-            </div>
-            <input id="message" type="text" placeholder="Type your message here" onkeypress="handleChatMessage(event, 'message')"/>
+        <div class="top">
+            <input type="text" placeholder="Type your nickname here" id="name"/>
+            <input type="submit" onclick="joinGame()"/>
         </div>
-        <div class="center">
-            <canvas id="chessboard" width="678" height="682" onclick="handleClick()"></canvas>
-        </div>
-        <div class="right">
-            <div id="turn">
-            </div>
-            <ul id="info">
-            </ul>
-            <div id="timer">60</div>
-        </div>
-
     </body>
 </html>
