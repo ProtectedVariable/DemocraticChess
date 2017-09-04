@@ -91,15 +91,15 @@ function player(pseudo) {
 
 
 function broadcastToAll(communication) {
-    server.clients.forEach(client => {
-        if (client !== server && client.readyState === webSocket.OPEN) {
-            client.send(communication);
+    clients.forEach(client => {
+        if (client.socket.readyState === webSocket.OPEN && client.player.name !== undefined) {
+            client.socket.send(communication);
         }
     })
 }
 
 function broadcastToTeam(communication, team) {
-    let members = clients.filter(client => client.player.team === team);
+    let members = clients.filter(client => client.player.team === team && client.player.name !== undefined);
     members.forEach(member => member.socket.send(communication));
 }
 
@@ -165,13 +165,13 @@ function parseMessage(data) {
                 log.info(`Making the move on the server`);
                 engine.move(movement);
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
-                broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, movement)))
+                broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, movement)));
 
                 let isCheck = engine.checkCheck((currentTeam + 1) % 2);
 
                 if (isCheck) {
                     let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
-                    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat("Server", `${isCheckMate ? "Checkmate" : "Check"}`))));
+                    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
                     if (isCheckMate) {
                         broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
                     }
