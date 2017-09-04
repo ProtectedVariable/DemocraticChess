@@ -25,6 +25,9 @@ let turnTimeOut = setTimeout(chooseVote, 1000 * 60);
 function chooseVote() {
     if (votes.length === 0) {
         //current team forfeits
+    } else {
+        //we choose the best vote
+
     }
 }
 
@@ -40,7 +43,11 @@ function vote(player, move) {
 
 
 function doWeWait() {
+    let oldWaiting = waiting;
     waiting = clients.length === 1 || clients.every(client => client.player.team === chess.PieceColor.BLACK) || clients.every(client => client.player.team === chess.PieceColor.WHITE);
+    if (oldWaiting && !waiting) {
+        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHANGE, currentTeam)));
+    }
     log.info(`NEED TO WAIT: ${waiting}`);
 }
 
@@ -144,36 +151,47 @@ function parseMessage(data) {
             if (client.player.team == currentTeam && !waiting) {
                 let movement = message.params;
                 log.info(`Received a move, sending it to players`);
-                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
-
-                if (engine.getAllPossibleMoves(movement.startCell).some(mv => mv === movement)) {
-                    //the move is valid
-                    let indexOfUserVote = votes.find(vote => vote.move === movement);
-                    let theVote = vote(player, movement);
-                    if (indexOfUserVote === undefined) {
-                        //we create a new vote
-                        votes.push(theVote);
-                    } else {
-                        //we replace its last vote if it already had one
-                        votes[indexOfUserVote] = theVote;
-                    }
-
-                    if (votes.length === currentTeam.length) {
-                        //we can switch directly and make the most voted move
-                        clearTimeout(turnTimeOut);
-                        chooseVote();
-                    }
-                }
-
 
                 //TODO we should check the validity and collect the votes here
+
                 log.info(`Making the move on the server`);
                 engine.move(movement);
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
+
+                let isCheck = engine.checkCheck((currentTeam + 1) % 2);
+
+                if (isCheck) {
+                    let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
+                    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat("Server", `${isCheckMate ? "Checkmate" : "Check"}`))));
+                }
 
                 //TODO switch team now
                 switchTeam();
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHANGE, currentTeam)));
                 log.info(`Switching to team ${currentTeam}`);
+
+                /*
+
+
+                //the move is valid
+                let indexOfUserVote = votes.find(vote => vote.move === movement);
+                let theVote = vote(player, movement);
+                if (indexOfUserVote === undefined) {
+                    //we create a new vote
+                    votes.push(theVote);
+                } else {
+                    //we replace its last vote if it already had one
+                    votes[indexOfUserVote] = theVote;
+                }
+
+                if (votes.length === currentTeam.length) {
+                    //we can switch directly and make the most voted move
+                    clearTimeout(turnTimeOut);
+                    chooseVote();
+                }
+                */
+
+
             }
 
             //TODO we should think about voting for choice of promotion transformation
