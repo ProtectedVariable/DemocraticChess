@@ -110,7 +110,7 @@ function parseMessage(data) {
     let id = content.id;
     let message = content.message;
 
-    if (clients[id] !== undefined && clients[id].player.name !== undefined) {
+    if (clients[id] !== undefined) {
         let client = clients[id];
         let player = client.player;
 
@@ -118,7 +118,7 @@ function parseMessage(data) {
             //we could check if it has already a name
             //TODO check if we already have a user with the same name and send a flag back
             let name = message.params;
-
+            log.info(`Trying name ${name}`);
             if (clients.some(client => client.player.name === name)) {
                 log.info(`Name ${name} is already taken`);
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PSEUDO_TAKEN, undefined)))
@@ -150,11 +150,11 @@ function parseMessage(data) {
                 doWeWait();
             }
 
-        } else if (message.type === comm.messageType.MOVE) {
+        } else if (message.type === comm.messageType.MOVE && client.player.name !== undefined) {
             //This is a vote for movement
             //redirect to all for now
 
-            if (client.player.team == currentTeam && !waiting) {
+            if (client.player.team === currentTeam && !waiting) {
                 let movement = message.params;
                 log.info(`Received a move, sending it to players`);
 
@@ -172,6 +172,9 @@ function parseMessage(data) {
                 if (isCheck) {
                     let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
                     broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat("Server", `${isCheckMate ? "Checkmate" : "Check"}`))));
+                    if (isCheckMate) {
+                        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
+                    }
                 }
 
                 //TODO switch team now
@@ -206,7 +209,7 @@ function parseMessage(data) {
             //TODO we should think about voting for choice of promotion transformation
 
 
-        } else if (message.type === comm.messageType.CHAT) {
+        } else if (message.type === comm.messageType.CHAT && client.player.name !== undefined) {
             //This is a chat from a client
             log.info(`New message from ${player.name}: ${message.params}`);
             broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(player, message.params))), player.team);
