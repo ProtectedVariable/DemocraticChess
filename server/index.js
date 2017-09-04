@@ -5,13 +5,14 @@ const chess = require("../common/ChessMotor.js");
 const logger = require("log");
 const ip = require("ip");
 
-let log = new logger("debug");
+const log = new logger("debug");
 
 const server = new webSocket.Server({port: 8080, family: 4});
 log.info(`Server is alive on IP ${ip.address()}`);
 
 let clients = [];
-let votes = [];
+let votes = {};
+let votesCount = 0;
 
 let engine = chess.getNewGame();
 
@@ -20,16 +21,46 @@ let currentTeam = undefined;
 
 setTimeout(sendWaitingMessage, 1000 * 10);
 
-let turnTimeOut = setTimeout(chooseVote, 1000 * 60);
+let turnTimeOut;
 
 //TODO at end of the game, show result, open chat to everybody, and after 1 minute, reset the game
 
 function chooseVote() {
-    if (votes.length === 0) {
+    if (votesCount === 0) {
         //current team forfeits
+        log.error(`No vote were made by team ${currentTeam}, switching team for now`);
+        switchTeam();
     } else {
+        //TODO should we kick someone who didn't vote?
         //we choose the best vote
+        log.info("Choosing what move to make");
+        let bestCount = 0;
+        let bestMoveString = "";
+        for (let key in votes) {
+            if (votes[key].length > bestCount)
+                bestMoveString = key;
+        }
+        log.info(`We chose the move: ${bestMoveString}`);
+        let moveToMake = JSON.parse(bestMoveString);
 
+        log.info(`Making the move on the server`);
+        engine.move(moveToMake);
+        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, moveToMake)));
+
+        let isCheck = engine.checkCheck((currentTeam + 1) % 2);
+
+        if (isCheck) {
+            let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
+            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
+            if (isCheckMate) {
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
+            }
+        }
+
+        votesCount = 0;
+        votes = {};
+        switchTeam();
+        log.info(`Switching to team ${currentTeam}`);
     }
 }
 
@@ -39,7 +70,7 @@ function switchTeam() {
     } else {
         currentTeam = currentTeam === chess.PieceColor.WHITE ? chess.PieceColor.BLACK : chess.PieceColor.WHITE;
     }
-    //after each turn, player waiting to play can play
+    //after each turn, players waiting to play can play
     clients.forEach(c => {
         if (c.player.name !== undefined && c.player.waiting) {
             c.player.waiting = false;
@@ -51,16 +82,16 @@ function switchTeam() {
 }
 
 
-function vote(player, move) {
-    return {player, move};
-}
-
-
 function doWeWait() {
     let oldWaiting = waiting;
-    waiting = clients.length === 1 || clients.every(client => client.player.team === chess.PieceColor.BLACK) || clients.every(client => client.player.team === chess.PieceColor.WHITE);
+    let realPlayers = clients.filter(c => c.player.name !== undefined);
+    waiting = realPlayers.length === 1 || realPlayers.every(client => client.player.team === chess.PieceColor.BLACK) || realPlayers.every(client => client.player.team === chess.PieceColor.WHITE);
     if (oldWaiting && !waiting) {
         switchTeam();
+    }
+
+    if (!oldWaiting && waiting) {
+        clearTimeout(turnTimeOut);
     }
     log.info(`NEED TO WAIT: ${waiting}`);
 }
@@ -144,7 +175,6 @@ function parseMessage(data) {
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, player)));
 
                 //send initial info about the game
-                //TODO check if we send board or engine here
 
                 log.info(`Sending board to ${player.name}`);
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));
@@ -167,7 +197,6 @@ function parseMessage(data) {
 
         } else if (message.type === comm.messageType.MOVE && client.player.name !== undefined && !client.player.waiting) {
             //This is a vote for movement
-            //redirect to all for now
 
             if (client.player.team === currentTeam && !waiting) {
                 let movement = message.params;
@@ -175,52 +204,48 @@ function parseMessage(data) {
                 if (possibleMoves.some(cell => (cell.x === movement.endCell.x && cell.y === movement.endCell.y))) {
 
                     //the move is valid
-                    log.info(`Received a valid move, sending it to players`);
+                    log.info(`Received a valid move, gonna consider this vote`);
 
-                    //TODO player arriving in the middle of a turn can only play during next turn
 
-                    log.info(`Making the move on the server`);
-                    engine.move(movement);
-                    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
-                    broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, movement)));
+                    log.info("Collecting vote");
+                    let movementKey = JSON.stringify(movement);
+                    console.log(movementKey);
 
-                    let isCheck = engine.checkCheck((currentTeam + 1) % 2);
-
-                    if (isCheck) {
-                        let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
-                        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
-                        if (isCheckMate) {
-                            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
+                    //deleting old vote for player if already had one
+                    for (let key in votes) {
+                        let index = votes[key].find(p => p.name === player.name);
+                        if (index !== undefined) {
+                            log.info(`Vote already found for ${player.name}, removing it...`);
+                            votes[key].splice(index);
+                            votesCount -= 1;
+                            broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.DEL_VOTE, JSON.parse(key))));
                         }
                     }
 
-                    //TODO switch team now
-                    switchTeam();
-                    log.info(`Switching to team ${currentTeam}`);
+                    //creating new vote
+                    log.info(`Registering new vote for ${player.name}`);
+                    if (votes[movementKey] !== undefined) {
+                        log.info(`Move already voted by someone else, adding to counter`);
+                        votes[movementKey].push(player);
+                    } else {
+                        log.info(`New move created`);
+                        votes[movementKey] = [player];
+                    }
+                    votesCount += 1;
+                    broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, movement)));
+
+
+                    if (votesCount === clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length) {
+                        //everybody voted
+                        log.info(`Everybody voted`);
+                        clearTimeout(turnTimeOut);
+                        chooseVote();
+                    }
+
+
                 } else {
                     log.warning("Move not accepted")
                 }
-
-                /*
-
-
-                //the move is valid
-                let indexOfUserVote = votes.find(vote => vote.move === movement);
-                let theVote = vote(player, movement);
-                if (indexOfUserVote === undefined) {
-                    //we create a new vote
-                    votes.push(theVote);
-                } else {
-                    //we replace its last vote if it already had one
-                    votes[indexOfUserVote] = theVote;
-                }
-
-                if (votes.length === currentTeam.length) {
-                    //we can switch directly and make the most voted move
-                    clearTimeout(turnTimeOut);
-                    chooseVote();
-                }
-                */
 
 
             }
