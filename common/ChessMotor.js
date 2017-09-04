@@ -88,9 +88,9 @@ function getNewGame() {
             let clone = getNewGame();
             this.board.forEach(function (line, i) {
                 line.forEach(function (spot, j) {
-					let p = line.piece;
-					let c = line.color;
-					let hm = line.hasMoved;
+					let p = spot.piece;
+					let c = spot.color;
+					let hm = spot.hasMoved;
                     clone.board[i][j] = {
 						piece : p,
 						color : c,
@@ -127,6 +127,8 @@ function getNewGame() {
             let result = [];
             if (test.piece === PieceType.EMPTY)
                 return undefined;
+			if(noCheckCheck === undefined)
+				noCheckCheck = false;
             switch (test.piece) {
                 case PieceType.PAWN:
                     if (test.color === PieceColor.WHITE && cell.x + 1 < 8) {
@@ -289,9 +291,9 @@ function getNewGame() {
                     break;
             }
 
-            if (result.length > 0 && !noCheckCheck)
-                return result.filter(this.testIfKingIsSuicidal(this, cell));
-			else if(result.length > 0)
+			if(!noCheckCheck)
+				result = result.filter(this.testIfKingIsSuicidal(this, cell));
+			if(result.length > 0)
 				return result;
             else
                 return undefined;
@@ -385,11 +387,11 @@ function getNewGame() {
                 for (let j = 0; j < 8; j++) {
                     let result = true;
                     if (this.board[i][j].color === color) {
-                        let engineCopy = this.getBoardCopy();
-                        let moves = engineCopy.getAllPossibleMoves(newCell(i, j));
+                        let moves = this.getAllPossibleMoves(newCell(i, j));
                         if (moves === undefined)
                             continue;
                         moves.forEach(possibleMove => {
+							let engineCopy = this.getBoardCopy();
                             engineCopy.move(newMove(newCell(i, j), possibleMove));
                             result = engineCopy.checkCheck(color);
                             if (result === false)
