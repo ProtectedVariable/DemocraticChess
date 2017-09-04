@@ -1,8 +1,9 @@
 "use strict";
 
-const SERVER_URL = "ws://172.20.1.66:8080";
-//const SERVER_URL = "ws://localhost:8080";
-let team = -1;
+//const SERVER_URL = "ws://172.20.1.66:8080";
+const SERVER_URL = "ws://localhost:8080";
+const BASE_TIME = 60;
+let team = -10;
 let connected = false;
 let id = -1;
 let socket;
@@ -12,7 +13,11 @@ let engine;
 let mouseCoord;
 let selectedPiece;
 let lastMoves;
-let lastX, lastY;
+let lastX;
+let lastY;
+let time = 60;
+let teamPlaying = -1;
+let timerLoop;
 
 let chessRenderer;
 const images = [0,image("./images/black_pawn.png"), image("./images/black_tower.png"),
@@ -35,6 +40,19 @@ function image(src) {
   return img;
 }
 
+function updateTimer() {
+    if(teamPlaying === team) {
+        time--;
+        if(time < 0) {
+            time = 0;
+        }
+        document.getElementById("timer").innerHTML = time;
+    } else {
+        time = BASE_TIME;
+        document.getElementById("timer").innerHTML = "Waiting on opponents";
+    }
+}
+
 function init() {
     let canvas = document.getElementById("chessboard");
     let ctx = canvas.getContext("2d");
@@ -49,9 +67,10 @@ function init() {
         window.location.replace("http://google.com");
         return;
     }
-    canvas.addEventListener('mousemove', function(evt) {
+    canvas.addEventListener("mousemove", function(evt) {
             mouseCoord = getMousePos(canvas, evt);
     }, false);
+    setInterval(updateTimer, 1000);
     connect(name);
     return ctx;
 }
@@ -123,7 +142,7 @@ function removePlayer(player) {
 function addPlayer(player) {
     addToChat("Server", "Player "+player.name+" has joined team "+getTeamName(player.team));
     if(player.name !== name) {
-        document.getElementById("info").innerHTML += '<li id="'+player.name+'" class="'+getTeamName(player.team)+'">'+player.name+"</li>";
+        document.getElementById("info").innerHTML += "<li id=\""+player.name+"\" class=\""+getTeamName(player.team)+"\">"+player.name+"</li>";
     }
 }
 
@@ -134,8 +153,14 @@ function applyMove(mv) {
 
 function setPlayerList(lst) {
     lst.forEach(function(player) {
-        document.getElementById("info").innerHTML += '<li id="'+player.name+'" class="'+getTeamName(player.team)+'">'+player.name+"</li>";
+        document.getElementById("info").innerHTML += "<li id=\""+player.name+"\" class=\""+getTeamName(player.team)+"\">"+player.name+"</li>";
     });
+}
+
+function teamChange(team) {
+    teamPlaying = team;
+    addToChat("Server", `It is now ${getTeamName(team)}'s turn.`);
+    document.getElementById("turn").innerHTML = getTeamName(team)+"'s turn";
 }
 
 function onMessageReceived(msg) {
@@ -170,10 +195,7 @@ function onMessageReceived(msg) {
             setPlayerList(message.params);
             break;
         case messageType.CHANGE:
-            //this is a change of team to play
-            //for now, we just put a chat, but we should have text indicating next team to play always visible
-            //this also resets the timer
-            addToChat("Server", `Next team to play is ${getTeamName(message.params)}`);
+            teamChange(message.params);
             break;
     }
 }

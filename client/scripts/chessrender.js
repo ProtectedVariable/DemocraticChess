@@ -10,7 +10,6 @@ const tileSize = 83;
 
 function renderer(pcanvas, pctx) {
     return {
-
         ctx : pctx,
         canvas : pcanvas,
 

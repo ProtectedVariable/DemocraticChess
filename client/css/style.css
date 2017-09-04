@@ -15,6 +15,10 @@ textarea {
     margin-left: 5%;
 }
 
+#turn {
+    text-align: center;
+}
+
 #chat {
     resize: none;
     cursor: default;
