@@ -129,7 +129,7 @@ function getNewGame() {
                 return undefined;
             switch (test.piece) {
                 case PieceType.PAWN:
-                    if (test.color === PieceColor.WHITE) {
+                    if (test.color === PieceColor.WHITE && cell.x + 1 < 8) {
                         if (this.board[cell.x + 1][cell.y].piece === PieceType.EMPTY) {
                             if (!test.hasMoved && this.board[cell.x + 2][cell.y].piece === PieceType.EMPTY)
                                 result.push(newCell(cell.x + 2, cell.y));
@@ -140,7 +140,7 @@ function getNewGame() {
                         if (cell.y - 1 >= 0 && this.board[cell.x + 1][cell.y - 1].color === PieceColor.BLACK)
                             result.push(newCell(cell.x + 1, cell.y - 1));
                     }
-                    else {
+                    else if (cell.x - 1 >= 0) {
                         if (this.board[cell.x - 1][cell.y].piece === PieceType.EMPTY) {
                             if (!test.hasMoved && this.board[cell.x - 2][cell.y].piece === PieceType.EMPTY)
                                 result.push(newCell(cell.x - 2, cell.y));
