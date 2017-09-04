@@ -64,8 +64,7 @@ function sendWaitingMessage() {
 //TODO: add keep alive detection
 
 function client(socket, id, player) {
-    let user = {socket, id, player};
-    return user;
+    return {socket, id, player};
 }
 
 function player(pseudo) {
@@ -118,31 +117,36 @@ function parseMessage(data) {
         if (message.type === comm.messageType.NAME) {
             //we could check if it has already a name
             //TODO check if we already have a user with the same name and send a flag back
-            player.name = message.params;
-            log.info(`New player for id ${id} is ${player.name} of team ${player.team}`);
-            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, player)));
+            let name = message.params;
 
-            //send initial info about the game
-            //TODO check if we send board or engine here
+            if (clients.some(client => client.player.name === name)) {
+                client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PSEUDO_TAKEN, undefined)))
+            } else {
+                player.name = name;
+                log.info(`New player for id ${id} is ${player.name} of team ${player.team}`);
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, player)));
 
-            log.info(`Sending board to ${player.name}`);
-            client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));
+                //send initial info about the game
+                //TODO check if we send board or engine here
 
-
-            //sending player list
-            log.info(`Sending player list to ${player.name}`);
-            let playersList = clients.map(client => client.player);
-            client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.LIST, playersList)));
-
-            //sending team to player
-            log.info(`Sending team to player ${player.name}`);
-            client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.TEAM, player.team)));
-
-            //reevaluating if we need to wait
+                log.info(`Sending board to ${player.name}`);
+                client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));
 
 
-            doWeWait();
+                //sending player list
+                log.info(`Sending player list to ${player.name}`);
+                let playersList = clients.map(client => client.player);
+                client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.LIST, playersList)));
 
+                //sending team to player
+                log.info(`Sending team to player ${player.name}`);
+                client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.TEAM, player.team)));
+
+                //reevaluating if we need to wait
+
+
+                doWeWait();
+            }
 
         } else if (message.type === comm.messageType.MOVE) {
             //This is a vote for movement
@@ -153,6 +157,8 @@ function parseMessage(data) {
                 log.info(`Received a move, sending it to players`);
 
                 //TODO we should check the validity and collect the votes here
+
+                //TODO player arriving in the middle of a turn can only play during next turn
 
                 log.info(`Making the move on the server`);
                 engine.move(movement);

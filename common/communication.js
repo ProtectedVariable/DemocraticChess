@@ -13,6 +13,7 @@ const messageType = {
     NEW_PLAYER: 11,
     PLAYER_LEFT: 12,
     ID: 13,
+    PSEUDO_TAKEN: 14,
 };
 
 function newMessage(type, params) {

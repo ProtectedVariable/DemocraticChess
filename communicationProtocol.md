@@ -37,3 +37,4 @@ The following types of messages will be available:
 | Change of team to play (timeout) | `CHANGE` | id of the next team to play | All players |
 | New Player Joined | `NEW_PLAYER` | Player object |All players |
 | Player left | `PLAYER_LEFT` | Player object | All players |
+|Pseudo already taken   | `PSEUDO_TAKEN`  | nothing  | Single user  |
