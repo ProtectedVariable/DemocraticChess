@@ -7,26 +7,6 @@
       <link href='https://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
 
       <script type="text/javascript">
-
-        let loaded = 0;
-          function image(src) {
-              let img = new Image();
-              img.src = src;
-              img.onload = function() {
-                  loaded += 1;
-                  if(loaded === 12) {
-                      init();
-                  }
-              }
-              return img;
-          }
-
-          const images = [0,image("./images/black_pawn.png"), image("./images/black_tower.png"),
-           image("./images/black_knight.png"), image("./images/black_bishop.png"),
-           image("./images/black_queen.png"), image("./images/black_king.png"),7,8,9,10,
-           image("./images/white_pawn.png"), image("./images/white_tower.png"),
-           image("./images/white_knight.png"), image("./images/white_bishop.png"),
-           image("./images/white_queen.png"), image("./images/white_king.png")];
       </script>
 
       <script src="../common/ChessMotor.js"></script>

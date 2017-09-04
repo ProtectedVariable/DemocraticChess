@@ -1,6 +1,6 @@
 "use strict";
 
-const SERVER_URL = "ws://172.20.0.208:8080";
+const SERVER_URL = "ws://172.20.1.66:8080";
 //const SERVER_URL = "ws://localhost:8080";
 let team = -1;
 let connected = false;
@@ -14,8 +14,50 @@ let selectedPiece;
 let lastMoves;
 let lastX, lastY;
 
+let chessRenderer;
+const images = [0,image("./images/black_pawn.png"), image("./images/black_tower.png"),
+ image("./images/black_knight.png"), image("./images/black_bishop.png"),
+ image("./images/black_queen.png"), image("./images/black_king.png"),7,8,9,10,
+ image("./images/white_pawn.png"), image("./images/white_tower.png"),
+ image("./images/white_knight.png"), image("./images/white_bishop.png"),
+ image("./images/white_queen.png"), image("./images/white_king.png")];
+
+image.loaded = 0;
+function image(src) {
+  let img = new Image();
+  img.src = src;
+  img.onload = function() {
+      image.loaded += 1;
+      if(image.loaded === 12) {
+          init();
+      }
+  };
+  return img;
+}
+
+function init() {
+    let canvas = document.getElementById("chessboard");
+    let ctx = canvas.getContext("2d");
+    ctx.font = "20px Arial";
+    chessRenderer = new renderer(canvas, ctx);
+    chessRenderer.renderBoard();
+    let name = "";
+    while(name === "") {
+        name = prompt("Please enter your nickname");
+    }
+    if(name == null) {
+        window.location.replace("http://google.com");
+        return;
+    }
+    canvas.addEventListener('mousemove', function(evt) {
+            mouseCoord = getMousePos(canvas, evt);
+    }, false);
+    connect(name);
+    return ctx;
+}
+
 function handleClick() {
-    refreshGame(engine.board);
+    chessRenderer.refreshGame(engine.board, images);
     let y = Math.floor(mouseCoord.y / tileSize);
     let x = Math.floor(mouseCoord.x / tileSize);
     let selected = engine.board[y][x];
@@ -23,7 +65,7 @@ function handleClick() {
     if(selected.color === team) {
         if(moves !== undefined) {
             moves.forEach(function(move) {
-                highlightTile(move.y, move.x, (engine.board[move.x][move.y].piece !== PieceType.EMPTY));
+                chessRenderer.highlightTile(move.y, move.x, (engine.board[move.x][move.y].piece !== PieceType.EMPTY));
             });
         }
     }
@@ -87,7 +129,7 @@ function addPlayer(player) {
 
 function applyMove(mv) {
     engine.move(mv);
-    refreshGame(engine.board);
+    chessRenderer.refreshGame(engine.board, images);
 }
 
 function setPlayerList(lst) {
@@ -112,7 +154,7 @@ function onMessageReceived(msg) {
         case messageType.BOARD:
             engine = getNewGame();
             engine.setBoard(message.params);
-            refreshGame(engine.board);
+            chessRenderer.refreshGame(engine.board, images);
             break;
         case messageType.PLAYER_LEFT:
             let playerLeaving = message.params;
