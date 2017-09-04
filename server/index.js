@@ -22,6 +22,8 @@ setTimeout(sendWaitingMessage, 1000 * 10);
 
 let turnTimeOut = setTimeout(chooseVote, 1000 * 60);
 
+//TODO at end of the game, show result, open chat to everybody, and after 1 minute, reset the game
+
 function chooseVote() {
     if (votes.length === 0) {
         //current team forfeits
@@ -46,7 +48,7 @@ function doWeWait() {
     let oldWaiting = waiting;
     waiting = clients.length === 1 || clients.every(client => client.player.team === chess.PieceColor.BLACK) || clients.every(client => client.player.team === chess.PieceColor.WHITE);
     if (oldWaiting && !waiting) {
-        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHANGE, currentTeam)));
+        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHANGE, chess.PieceColor.WHITE)));
     }
     log.info(`NEED TO WAIT: ${waiting}`);
 }
@@ -93,6 +95,7 @@ function player(pseudo) {
 function broadcastToAll(communication) {
     clients.forEach(client => {
         if (client.socket.readyState === webSocket.OPEN && client.player.name !== undefined) {
+            //TODO try-catch in case of multiple close at the same time
             client.socket.send(communication);
         }
     })
@@ -117,9 +120,9 @@ function parseMessage(data) {
         if (message.type === comm.messageType.NAME) {
             //we could check if it has already a name
             //TODO check if we already have a user with the same name and send a flag back
-            let name = message.params;
+            let name = message.params.trim();
             log.info(`Trying name ${name}`);
-            if (clients.some(client => client.player.name === name)) {
+            if (clients.some(client => client.player.name === name) || name === "") {
                 log.info(`Name ${name} is already taken`);
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PSEUDO_TAKEN, undefined)))
             } else {
