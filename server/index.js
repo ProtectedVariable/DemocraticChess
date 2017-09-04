@@ -110,7 +110,7 @@ function parseMessage(data) {
     let id = content.id;
     let message = content.message;
 
-    if (clients[id] !== undefined) {
+    if (clients[id] !== undefined && clients[id].player.name !== undefined) {
         let client = clients[id];
         let player = client.player;
 
@@ -120,10 +120,12 @@ function parseMessage(data) {
             let name = message.params;
 
             if (clients.some(client => client.player.name === name)) {
+                log.info(`Name ${name} is already taken`);
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PSEUDO_TAKEN, undefined)))
             } else {
                 player.name = name;
                 log.info(`New player for id ${id} is ${player.name} of team ${player.team}`);
+                client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PSEUDO_OK, undefined)));
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, player)));
 
                 //send initial info about the game
@@ -163,6 +165,7 @@ function parseMessage(data) {
                 log.info(`Making the move on the server`);
                 engine.move(movement);
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
+                broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, movement)))
 
                 let isCheck = engine.checkCheck((currentTeam + 1) % 2);
 

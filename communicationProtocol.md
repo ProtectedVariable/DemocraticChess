@@ -38,3 +38,6 @@ The following types of messages will be available:
 | New Player Joined | `NEW_PLAYER` | Player object |All players |
 | Player left | `PLAYER_LEFT` | Player object | All players |
 |Pseudo already taken   | `PSEUDO_TAKEN`  | nothing  | Single user  |
+|Pseudo OK   | `PSEUDO_OK`  | nothing  | Single user  |
+|Vote done by other player   | `NEW_VOTE`   | Move object `{StartCell, EndCell}`   |  Team |
+|Vote removed by other player   | `DEL_VOTE`  |  Move object `{StartCell, EndCell}` |  Team|

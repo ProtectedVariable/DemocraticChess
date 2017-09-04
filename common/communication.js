@@ -14,6 +14,10 @@ const messageType = {
     PLAYER_LEFT: 12,
     ID: 13,
     PSEUDO_TAKEN: 14,
+    PSEUDO_OK: 15,
+    NEW_VOTE: 16,
+    DEL_VOTE: 16,
+
 };
 
 function newMessage(type, params) {
