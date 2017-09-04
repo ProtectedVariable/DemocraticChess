@@ -8,18 +8,45 @@ const ip = require("ip");
 let log = new logger("debug");
 
 const server = new webSocket.Server({port: 8080, family: 4});
-console.info(`Server is alive on IP ${ip.address()}`);
+log.info(`Server is alive on IP ${ip.address()}`);
 
 let clients = [];
+let votes = [];
 
 let engine = chess.getNewGame();
 
+let waiting = true;
 let currentTeam = chess.PieceColor.WHITE;
 
 setTimeout(sendWaitingMessage, 1000 * 10);
 
+let turnTimeOut = setTimeout(chooseVote, 1000 * 60);
+
+function chooseVote() {
+    if (votes.length === 0) {
+        //current team forfeits
+    }
+}
+
+function switchTeam() {
+    currentTeam = currentTeam === chess.PieceColor.WHITE ? chess.PieceColor.BLACK : chess.PieceColor.WHITE;
+    turnTimeOut = setTimeout(chooseVote, 1000 * 60)
+}
+
+
+function vote(player, move) {
+    return {player, move};
+}
+
+
+function doWeWait() {
+    waiting = clients.length === 1 || clients.every(client => client.player.team === chess.PieceColor.BLACK) || clients.every(client => client.player.team === chess.PieceColor.WHITE);
+    log.info(`NEED TO WAIT: ${waiting}`);
+}
+
 function sendWaitingMessage() {
-    if (clients.length === 1 || clients.every(client => client.player.team === chess.PieceColor.BLACK) || clients.every(client => client.player.team === chess.PieceColor.WHITE)) {
+
+    if (waiting) {
         broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, "Waiting for another player"))));
     }
     //launch if one team is empty as well
@@ -104,24 +131,49 @@ function parseMessage(data) {
             log.info(`Sending team to player ${player.name}`);
             client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.TEAM, player.team)));
 
+            //reevaluating if we need to wait
+
+
+            doWeWait();
+
 
         } else if (message.type === comm.messageType.MOVE) {
             //This is a vote for movement
             //redirect to all for now
-            if (client.player.team == currentTeam) {
+
+            if (client.player.team == currentTeam && !waiting) {
                 let movement = message.params;
                 log.info(`Received a move, sending it to players`);
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
+
+                if (engine.getAllPossibleMoves(movement.startCell).some(mv => mv === movement)) {
+                    //the move is valid
+                    let indexOfUserVote = votes.find(vote => vote.move === movement);
+                    let theVote = vote(player, movement);
+                    if (indexOfUserVote === undefined) {
+                        //we create a new vote
+                        votes.push(theVote);
+                    } else {
+                        //we replace its last vote if it already had one
+                        votes[indexOfUserVote] = theVote;
+                    }
+
+                    if (votes.length === currentTeam.length) {
+                        //we can switch directly and make the most voted move
+                        clearTimeout(turnTimeOut);
+                        chooseVote();
+                    }
+                }
+
+
                 //TODO we should check the validity and collect the votes here
                 log.info(`Making the move on the server`);
                 engine.move(movement);
 
                 //TODO switch team now
-                currentTeam = currentTeam === chess.PieceColor.WHITE ? chess.PieceColor.BLACK : chess.PieceColor.WHITE;
-                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.TEAM, currentTeam)));
+                switchTeam();
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHANGE, currentTeam)));
                 log.info(`Switching to team ${currentTeam}`);
-                //TODO remove this chat
-                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `Next team to play is ${currentTeam}`))));
             }
 
             //TODO we should think about voting for choice of promotion transformation
@@ -154,6 +206,8 @@ server.on("connection", (ws) => {
                 log.info(`Player ${client.player.name} with id ${id} disconnected`);
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.PLAYER_LEFT, client.player)));
                 clients.splice(index, 1);
+                //reevaluating if we need to wait
+                doWeWait();
             }
         });
         if (clients.length === 0) {

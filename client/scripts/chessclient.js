@@ -127,6 +127,12 @@ function onMessageReceived(msg) {
         case messageType.LIST:
             setPlayerList(message.params);
             break;
+        case messageType.CHANGE:
+            //this is a change of team to play
+            //for now, we just put a chat, but we should have text indicating next team to play always visible
+            //this also resets the timer
+            addToChat("Server", `Next team to play is ${getTeamName(message.params)}`);
+            break;
     }
 }
 
