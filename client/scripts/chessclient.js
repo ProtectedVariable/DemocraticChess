@@ -37,6 +37,7 @@ function nameOK() {
 
 function nameTaken() {
     document.getElementById("loginfo").innerHTML = "This name is already taken, please choose another one";
+    document.getElementById("loginfo").style.display = "block";
 }
 
 image.loaded = 0;
