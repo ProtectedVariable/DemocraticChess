@@ -16,7 +16,7 @@ let votes = [];
 let engine = chess.getNewGame();
 
 let waiting = true;
-let currentTeam = chess.PieceColor.WHITE;
+let currentTeam = undefined;
 
 setTimeout(sendWaitingMessage, 1000 * 10);
 
@@ -34,7 +34,19 @@ function chooseVote() {
 }
 
 function switchTeam() {
-    currentTeam = currentTeam === chess.PieceColor.WHITE ? chess.PieceColor.BLACK : chess.PieceColor.WHITE;
+    if (currentTeam === undefined) {
+        currentTeam = chess.PieceColor.WHITE;
+    } else {
+        currentTeam = currentTeam === chess.PieceColor.WHITE ? chess.PieceColor.BLACK : chess.PieceColor.WHITE;
+    }
+    //after each turn, player waiting to play can play
+    clients.forEach(c => {
+        if (c.player.name !== undefined && c.player.waiting) {
+            c.player.waiting = false;
+            c.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PLAY, undefined)));
+        }
+    });
+    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHANGE, currentTeam)));
     turnTimeOut = setTimeout(chooseVote, 1000 * 60)
 }
 
@@ -48,7 +60,7 @@ function doWeWait() {
     let oldWaiting = waiting;
     waiting = clients.length === 1 || clients.every(client => client.player.team === chess.PieceColor.BLACK) || clients.every(client => client.player.team === chess.PieceColor.WHITE);
     if (oldWaiting && !waiting) {
-        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHANGE, chess.PieceColor.WHITE)));
+        switchTeam();
     }
     log.info(`NEED TO WAIT: ${waiting}`);
 }
@@ -70,7 +82,7 @@ function client(socket, id, player) {
 }
 
 function player(pseudo) {
-    let user = {name: pseudo, team: undefined};
+    let user = {name: pseudo, team: undefined, waiting: true};
 
     function pickTeam() {
         //or team with less people
@@ -140,7 +152,7 @@ function parseMessage(data) {
 
                 //sending player list
                 log.info(`Sending player list to ${player.name}`);
-                let playersList = clients.map(client => client.player);
+                let playersList = clients.map(client => client.player).filter(player => player.name !== undefined);
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.LIST, playersList)));
 
                 //sending team to player
@@ -153,37 +165,41 @@ function parseMessage(data) {
                 doWeWait();
             }
 
-        } else if (message.type === comm.messageType.MOVE && client.player.name !== undefined) {
+        } else if (message.type === comm.messageType.MOVE && client.player.name !== undefined && !client.player.waiting) {
             //This is a vote for movement
             //redirect to all for now
 
             if (client.player.team === currentTeam && !waiting) {
                 let movement = message.params;
-                log.info(`Received a move, sending it to players`);
+                let possibleMoves = engine.getAllPossibleMoves(movement.startCell, false);
+                if (possibleMoves.some(cell => (cell.x === movement.endCell.x && cell.y === movement.endCell.y))) {
 
-                //TODO we should check the validity and collect the votes here
+                    //the move is valid
+                    log.info(`Received a valid move, sending it to players`);
 
-                //TODO player arriving in the middle of a turn can only play during next turn
+                    //TODO player arriving in the middle of a turn can only play during next turn
 
-                log.info(`Making the move on the server`);
-                engine.move(movement);
-                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
-                broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, movement)));
+                    log.info(`Making the move on the server`);
+                    engine.move(movement);
+                    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, movement)));
+                    broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, movement)));
 
-                let isCheck = engine.checkCheck((currentTeam + 1) % 2);
+                    let isCheck = engine.checkCheck((currentTeam + 1) % 2);
 
-                if (isCheck) {
-                    let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
-                    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
-                    if (isCheckMate) {
-                        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
+                    if (isCheck) {
+                        let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
+                        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
+                        if (isCheckMate) {
+                            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
+                        }
                     }
-                }
 
-                //TODO switch team now
-                switchTeam();
-                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHANGE, currentTeam)));
-                log.info(`Switching to team ${currentTeam}`);
+                    //TODO switch team now
+                    switchTeam();
+                    log.info(`Switching to team ${currentTeam}`);
+                } else {
+                    log.warning("Move not accepted")
+                }
 
                 /*
 

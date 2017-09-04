@@ -16,6 +16,7 @@ const messageType = {
     PSEUDO_TAKEN: 14,
     PSEUDO_OK: 15,
     DEL_VOTE: 16,
+    PLAY: 17,
 
 };
 

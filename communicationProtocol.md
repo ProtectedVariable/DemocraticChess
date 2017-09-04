@@ -40,3 +40,4 @@ The following types of messages will be available:
 |Pseudo already taken   | `PSEUDO_TAKEN`  | nothing  | Single user  |
 |Pseudo OK   | `PSEUDO_OK`  | nothing  | Single user  |
 |Vote removed by other player   | `DEL_VOTE`  |  Move object `{StartCell, EndCell}` |  Team|
+|Player can start playing from now on   | `PLAY`   | nothing   | Single user  |
