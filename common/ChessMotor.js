@@ -293,7 +293,7 @@ function getNewGame() {
             return function (proposed) {
                 let copy = engine.getBoardCopy();
                 copy.move(newMove(cell, proposed));
-                let result = !copy.checkCheck(copy.board[proposed.x][proposed.y].color);
+                let result = !copy.checkCheck(copy.board[proposed.x][proposed.y].color, true);
                 return result;
             }
         },
@@ -346,12 +346,17 @@ function getNewGame() {
 		},
 
         //Teste si le roi de la couleur color est en echec
-        checkCheck: function (color) {
+        checkCheck: function (color, noKing) {
             let kingCell = undefined;
             let allCasesEnnemyCanReach = [];
+			if(noKing === undefined)
+				noKing = false;
             for (let i = 0; i < 8; i++) {
                 for (let j = 0; j < 8; j++) {
                     if (this.board[i][j].color !== color && this.board[i][j].piece !== PieceType.EMPTY) {
+						if(noKing && this.board[i][j].piece === PieceType.KING)
+							continue;
+							
                         let moves = this.getAllPossibleMoves(newCell(i, j));
                         if (moves !== undefined)
                             moves.forEach(move => allCasesEnnemyCanReach.push(move));
