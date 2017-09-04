@@ -5,7 +5,7 @@ const messageType = {
     TEAM: 3,
     BOARD: 4,
     LIST: 5,
-    VOTE: 6,
+    NEW_VOTE: 6,
     INCOMING_CHAT: 7,
     MOVED: 8,
     RESULT: 9,
@@ -15,7 +15,6 @@ const messageType = {
     ID: 13,
     PSEUDO_TAKEN: 14,
     PSEUDO_OK: 15,
-    NEW_VOTE: 16,
     DEL_VOTE: 16,
 
 };
