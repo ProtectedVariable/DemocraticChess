@@ -88,7 +88,14 @@ function getNewGame() {
             let clone = getNewGame();
             this.board.forEach(function (line, i) {
                 line.forEach(function (spot, j) {
-                    clone.board[i][j] = spot;
+					let p = line.piece;
+					let c = line.color;
+					let hm = line.hasMoved;
+                    clone.board[i][j] = {
+						piece : p,
+						color : c,
+						hasMoved : hm,
+					};
                 });
             });
             return clone;
@@ -115,7 +122,7 @@ function getNewGame() {
                 return eaten;
         },
 
-        getAllPossibleMoves: function(cell) {
+        getAllPossibleMoves: function(cell, noCheckCheck) {
             let test = this.board[cell.x][cell.y];
             let result = [];
             if (test.piece === PieceType.EMPTY)
@@ -279,12 +286,13 @@ function getNewGame() {
                             result.push(newCell(7, 5));
                     }
 
-                    result = result.filter(this.testIfKingIsSuicidal(this, cell));
                     break;
             }
 
-            if (result.length > 0)
-                return result;
+            if (result.length > 0 && !noCheckCheck)
+                return result.filter(this.testIfKingIsSuicidal(this, cell));
+			else if(result.length > 0)
+				return result;
             else
                 return undefined;
         },
@@ -292,8 +300,9 @@ function getNewGame() {
         testIfKingIsSuicidal: function (engine, cell) {
             return function (proposed) {
                 let copy = engine.getBoardCopy();
+				let team = copy.board[cell.x][cell.y].color;
                 copy.move(newMove(cell, proposed));
-                let result = !copy.checkCheck(copy.board[proposed.x][proposed.y].color, true);
+                let result = !copy.checkCheck(team, true);
                 return result;
             }
         },
@@ -354,10 +363,7 @@ function getNewGame() {
             for (let i = 0; i < 8; i++) {
                 for (let j = 0; j < 8; j++) {
                     if (this.board[i][j].color !== color && this.board[i][j].piece !== PieceType.EMPTY) {
-						if(noKing && this.board[i][j].piece === PieceType.KING)
-							continue;
-							
-                        let moves = this.getAllPossibleMoves(newCell(i, j));
+                        let moves = this.getAllPossibleMoves(newCell(i, j), noKing);
                         if (moves !== undefined)
                             moves.forEach(move => allCasesEnnemyCanReach.push(move));
                     }
