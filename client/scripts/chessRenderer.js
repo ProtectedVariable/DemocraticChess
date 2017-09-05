@@ -8,8 +8,7 @@ const highlightColor2 =  "#AA0000";
 const highlightBorder = 6;
 const tileSize = 83;
 
-function chessRenderer(pcanvas) {
-    let context = pcanvas.getContext("2d");
+function chessRenderer(pcanvas, context) {
     context.font = "20px Arial";
 
     return {

@@ -13,7 +13,7 @@ const PLAY_PAGE = `<div class="left">
     </div>
     <ul id="info">
     </ul>
-    <div id="timer">60</div>
+    <div id="timer">Waiting for next turn</div>
 </div>`;
 
 let client = new chessClient();
@@ -27,7 +27,9 @@ function joinGame() {
 function nameOK() {
     document.body.innerHTML = PLAY_PAGE;
     let canvas = document.getElementById("chessboard");
-    client.chessRenderer = new chessRenderer(canvas);
+    let context = canvas.getContext("2d");
+    client.chessRenderer = new chessRenderer(canvas, context);
+    client.voteRenderer = new voteRenderer(context);
     setInterval(client.updateTimer.bind(client), 1000);
     canvas.addEventListener("mousemove", function(evt) {
             client.mouseCoord = client.getMousePos(canvas, evt);
@@ -68,6 +70,7 @@ function chessClient() {
     return {
         socketClient : new socketClient(),
         chessRenderer : undefined,
+        voteRenderer : undefined,
         team : undefined,
         id : -1,
         open : false,
@@ -79,56 +82,62 @@ function chessClient() {
         lastX : undefined,
         lastY : undefined,
         time : 60,
+        playing : false,
         teamPlaying : -1,
 
         updateTimer : function() {
-            if(this.teamPlaying === this.team) {
-                this.time -= 1;
-                if(this.time < 0) {
-                    this.time = 0;
+            if(this.playing) {
+                if(this.teamPlaying === this.team) {
+                    this.time -= 1;
+                    if(this.time < 0) {
+                        this.time = 0;
+                    }
+                    document.getElementById("timer").innerHTML = this.time;
+                } else {
+                    this.time = BASE_TIME;
+                    document.getElementById("timer").innerHTML = "Waiting on opponents";
                 }
-                document.getElementById("timer").innerHTML = this.time;
-            } else {
-                this.time = BASE_TIME;
-                document.getElementById("timer").innerHTML = "Waiting on opponents";
             }
         },
 
         handleClick : function() {
-            this.chessRenderer.refreshGame(this.engine.board, images);
-            let y = Math.floor(this.mouseCoord.y / tileSize);
-            let x = Math.floor(this.mouseCoord.x / tileSize);
-            let selected = this.engine.board[y][x];
-            let moves = this.engine.getAllPossibleMoves(newCell(y, x));
-            if(selected.color === this.team) {
-                if(moves !== undefined) {
-                    moves.forEach(function(move) {
-                        this.chessRenderer.highlightTile(move.y, move.x, (this.engine.board[move.x][move.y].piece !== PieceType.EMPTY));
-                    }, this);
+            if(this.playing) {
+                this.chessRenderer.refreshGame(this.engine.board, images);
+                let y = Math.floor(this.mouseCoord.y / tileSize);
+                let x = Math.floor(this.mouseCoord.x / tileSize);
+                let selected = this.engine.board[y][x];
+                let moves = this.engine.getAllPossibleMoves(newCell(y, x));
+                if(selected.color === this.team) {
+                    if(moves !== undefined) {
+                        moves.forEach(function(move) {
+                            this.chessRenderer.highlightTile(move.y, move.x, (this.engine.board[move.x][move.y].piece !== PieceType.EMPTY));
+                        }, this);
+                    }
                 }
-            }
-            let voteOK = false;
-            //if we clicked an empty tile or an enemy tile, and we had a piece selected, and the piece had possible moves
-            if(selected.piece === PieceType.EMPTY || selected.color !== this.team) {
-                if(this.selectedPiece.piece !== PieceType.EMPTY && this.selectedPiece.color === this.team) {
-                    if(this.lastMoves !== undefined) {
-                        //check if selected tile is part of the possible moves
-                        this.lastMoves.forEach(function(move) {
-                            if(move.x === y && move.y === x) {
-                                voteOK = true;
-                            }
-                        });
+                let voteOK = false;
+                //if we clicked an empty tile or an enemy tile, and we had a piece selected, and the piece had possible moves
+                if(selected.piece === PieceType.EMPTY || selected.color !== this.team) {
+                    if(this.selectedPiece.piece !== PieceType.EMPTY && this.selectedPiece.color === this.team) {
+                        if(this.lastMoves !== undefined) {
+                            //check if selected tile is part of the possible moves
+                            this.lastMoves.forEach(function(move) {
+                                if(move.x === y && move.y === x) {
+                                    voteOK = true;
+                                }
+                            });
 
-                        if(voteOK) {
-                            this.socketClient.sendMove(this.lastY, this.lastX, y, x);
+                            if(voteOK) {
+                                this.socketClient.sendMove(this.lastY, this.lastX, y, x);
+                            }
                         }
                     }
                 }
+                this.voteRenderer.renderVotes();
+                this.lastX = x;
+                this.lastY = y;
+                this.selectedPiece = selected;
+                this.lastMoves = moves;
             }
-            this.lastX = x;
-            this.lastY = y;
-            this.selectedPiece = selected;
-            this.lastMoves = moves;
         },
 
         getMousePos : function(canvas, e) {
@@ -167,6 +176,7 @@ function chessClient() {
 
         applyMove : function(mv) {
             this.engine.move(mv);
+            this.voteRenderer.clearVotes();
             this.chessRenderer.refreshGame(this.engine.board, images);
         },
 
@@ -176,9 +186,18 @@ function chessClient() {
             }, this);
         },
 
+        updateVotes : function(move, add) {
+            if(add) {
+                this.voteRenderer.addVote(move);
+            } else {
+                this.voteRenderer.removeVote(move);
+            }
+            this.chessRenderer.refreshGame(this.engine.board, images);
+            this.voteRenderer.renderVotes();
+        },
+
         teamChange : function(team) {
             this.teamPlaying = team;
-            this.addToChat("Server", `It is now ${this.getTeamName(team)}'s turn.`);
             document.getElementById("turn").innerHTML = this.getTeamName(team)+"'s turn";
         },
 
@@ -233,6 +252,16 @@ function onMessageReceived(msg) {
             break;
         case messageType.CHANGE:
             client.teamChange(message.params);
+            break;
+        case messageType.PLAY:
+            client.playing = true;
+            break;
+        case messageType.DEL_VOTE:
+            client.updateVotes(message.params, false);
+            break;
+        case messageType.NEW_VOTE:
+            console.log("new vote");
+            client.updateVotes(message.params, true);
             break;
         default:
             console.log(message);
