@@ -1,6 +1,5 @@
 "use strict";
 
-const BASE_TIME = 60;
 const PLAY_PAGE = `<div class="left">
     <div>Welcome to the chat room</div>
     <div id="chat"></div>

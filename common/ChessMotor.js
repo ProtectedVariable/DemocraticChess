@@ -1,5 +1,7 @@
 "use strict";
 
+const BASE_TIME = 60;
+
 const PieceType = {
     EMPTY: 0,
     PAWN: 1,
@@ -19,7 +21,8 @@ function getEmptyCase() {
     return {
         piece: PieceType.EMPTY,
         color: undefined,
-        hasMoved: undefined
+        hasMoved: undefined,
+		hasJustDoubleMoved: undefined
     };
 }
 
@@ -91,10 +94,12 @@ function getNewGame() {
 					let p = spot.piece;
 					let c = spot.color;
 					let hm = spot.hasMoved;
+					let hjdm = spot.hasJustDoubleMoved;
                     clone.board[i][j] = {
 						piece : p,
 						color : c,
 						hasMoved : hm,
+						hasJustDoubleMoved : hjdm
 					};
                 });
             });
@@ -105,11 +110,39 @@ function getNewGame() {
             return {
                 piece: this.board[cell.x][cell.y].piece,
                 color: this.board[cell.x][cell.y].color,
-                hasMoved: this.board[cell.x][cell.y].hasMoved
+                hasMoved: this.board[cell.x][cell.y].hasMoved,
+                hasJustDoubleMoved: this.board[cell.x][cell.y].hasJustDoubleMoved
             };
         },
 
         move: function (mv) {
+			if(this.board[mv.startCell.x][mv.startCell.y].piece === PieceType.PAWN && mv.endCell.y !== mv.startCell.y) {
+				if(mv.startCell.x > mv.endCell.x)
+					this.board[mv.endCell.x - 1][mv.endCell.y] = getEmptyCase();
+				else if(mv.startCell.x < mv.endCell.x)
+					this.board[mv.endCell.x + 1][mv.endCell.y] = getEmptyCase();
+			}
+
+			this.board.forEach(line => {
+				line.forEach(spot => spot.hasJustDoubleMoved === undefined ? undefined : false);
+			});
+
+			if(this.board[mv.startCell.x][mv.startCell.y].piece === PieceType.PAWN && Math.abs(mv.startCell.x - mv.endCell.x) > 1)
+				this.board[mv.startCell.x][mv.startCell.y].hasJustDoubleMoved = true;
+
+			if(this.board[mv.startCell.x][mv.startCell.y] === PieceType.KING && Math.abs(mv.startCell.y - mv.endCell.y) > 1) {
+				if(isGreatCastlingPossible(this.board[mv.startCell.x][mv.startCell.y].color) && mv.endCell.y === 5) {
+					this.board[mv.startCell.x][7].hasMoved = true;
+					this.board[mv.startCell.x][4] = this.getCellCopy(this.board[mv.startCell.x][7]);
+					this.board[mv.startCell.x][7] = getEmptyCase();
+				}
+				else if(isSmallCastlingPossible(this.board[mv.startCell.x][mv.startCell.y].color) && mv.endCell.y === 1) {
+					this.board[mv.startCell.x][0].hasMoved = true;
+					this.board[mv.startCell.x][2] = this.getCellCopy(this.board[mv.startCell.x][0]);
+					this.board[mv.startCell.x][0] = getEmptyCase();
+				}
+			}
+
             let eaten = this.board[mv.endCell.x][mv.endCell.y].piece;
 
             this.board[mv.startCell.x][mv.startCell.y].hasMoved = true;
@@ -137,9 +170,11 @@ function getNewGame() {
                                 result.push(newCell(cell.x + 2, cell.y));
                             result.push(newCell(cell.x + 1, cell.y));
                         }
-                        if (cell.y + 1 < 8 && this.board[cell.x + 1][cell.y + 1].color === PieceColor.BLACK)
+                        if ((cell.y + 1 < 8 && this.board[cell.x + 1][cell.y + 1].color === PieceColor.BLACK)
+						|| (cell.x === 4 && this.board[cell.x][cell.y + 1].hasJustDoubleMoved))
                             result.push(newCell(cell.x + 1, cell.y + 1));
-                        if (cell.y - 1 >= 0 && this.board[cell.x + 1][cell.y - 1].color === PieceColor.BLACK)
+                        if ((cell.y - 1 >= 0 && this.board[cell.x + 1][cell.y - 1].color === PieceColor.BLACK)
+						|| (cell.x === 4 && this.board[cell.x][cell.y - 1].hasJustDoubleMoved))
                             result.push(newCell(cell.x + 1, cell.y - 1));
                     }
                     else if (cell.x - 1 >= 0) {
@@ -148,9 +183,11 @@ function getNewGame() {
                                 result.push(newCell(cell.x - 2, cell.y));
                             result.push(newCell(cell.x - 1, cell.y));
                         }
-                        if (cell.y + 1 < 8 && this.board[cell.x - 1][cell.y + 1].color === PieceColor.WHITE)
+                        if ((cell.y + 1 < 8 && this.board[cell.x - 1][cell.y + 1].color === PieceColor.WHITE)
+						|| (cell.x === 3 && this.board[cell.x][cell.y + 1].hasJustDoubleMoved))
                             result.push(newCell(cell.x - 1, cell.y + 1));
-                        if (cell.y - 1 >= 0 && this.board[cell.x - 1][cell.y - 1].color === PieceColor.WHITE)
+                        if ((cell.y - 1 >= 0 && this.board[cell.x - 1][cell.y - 1].color === PieceColor.WHITE)
+						|| (cell.x === 3 && this.board[cell.x][cell.y - 1].hasJustDoubleMoved))
                             result.push(newCell(cell.x - 1, cell.y - 1));
                     }
                     break;
@@ -413,7 +450,8 @@ function getNewGame() {
                 engine.board[i][j] = {
                     piece: PieceType.PAWN,
                     color: i % 2,
-                    hasMoved: false
+                    hasMoved: false,
+					hasJustDoubleMoved: false
                 };
             }
             else if (i === 0 || i === 7) {
