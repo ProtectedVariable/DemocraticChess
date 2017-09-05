@@ -22,7 +22,7 @@ function getEmptyCase() {
         piece: PieceType.EMPTY,
         color: undefined,
         hasMoved: undefined,
-		hasJustDoubleMoved: undefined
+		hasJustDoubleMoved: false
     };
 }
 
@@ -117,28 +117,28 @@ function getNewGame() {
 
         move: function (mv) {
 			if(this.board[mv.startCell.x][mv.startCell.y].piece === PieceType.PAWN && mv.endCell.y !== mv.startCell.y) {
-				if(mv.startCell.x > mv.endCell.x)
-					this.board[mv.endCell.x - 1][mv.endCell.y] = getEmptyCase();
-				else if(mv.startCell.x < mv.endCell.x)
-					this.board[mv.endCell.x + 1][mv.endCell.y] = getEmptyCase();
+				if(this.board[mv.startCell.x][mv.endCell.y].hasJustDoubleMoved)
+					this.board[mv.startCell.x][mv.endCell.y] = getEmptyCase();
 			}
 
 			this.board.forEach(line => {
-				line.forEach(spot => spot.hasJustDoubleMoved === undefined ? undefined : false);
+				line.forEach(spot => {
+					spot.hasJustDoubleMoved = false;
+				});
 			});
 
 			if(this.board[mv.startCell.x][mv.startCell.y].piece === PieceType.PAWN && Math.abs(mv.startCell.x - mv.endCell.x) > 1)
 				this.board[mv.startCell.x][mv.startCell.y].hasJustDoubleMoved = true;
 
-			if(this.board[mv.startCell.x][mv.startCell.y] === PieceType.KING && Math.abs(mv.startCell.y - mv.endCell.y) > 1) {
-				if(isGreatCastlingPossible(this.board[mv.startCell.x][mv.startCell.y].color) && mv.endCell.y === 5) {
+			if(this.board[mv.startCell.x][mv.startCell.y].piece === PieceType.KING && Math.abs(mv.startCell.y - mv.endCell.y) > 1) {
+				if(this.isGreatCastlingPossible(this.board[mv.startCell.x][mv.startCell.y].color) && mv.endCell.y === 5) {
 					this.board[mv.startCell.x][7].hasMoved = true;
-					this.board[mv.startCell.x][4] = this.getCellCopy(this.board[mv.startCell.x][7]);
+					this.board[mv.startCell.x][4] = this.getCellCopy(newCell(mv.startCell.x, 7));
 					this.board[mv.startCell.x][7] = getEmptyCase();
 				}
-				else if(isSmallCastlingPossible(this.board[mv.startCell.x][mv.startCell.y].color) && mv.endCell.y === 1) {
+				else if(this.isSmallCastlingPossible(this.board[mv.startCell.x][mv.startCell.y].color) && mv.endCell.y === 1) {
 					this.board[mv.startCell.x][0].hasMoved = true;
-					this.board[mv.startCell.x][2] = this.getCellCopy(this.board[mv.startCell.x][0]);
+					this.board[mv.startCell.x][2] = this.getCellCopy(newCell(mv.startCell.x, 0));
 					this.board[mv.startCell.x][0] = getEmptyCase();
 				}
 			}
@@ -171,10 +171,10 @@ function getNewGame() {
                             result.push(newCell(cell.x + 1, cell.y));
                         }
                         if ((cell.y + 1 < 8 && this.board[cell.x + 1][cell.y + 1].color === PieceColor.BLACK)
-						|| (cell.x === 4 && this.board[cell.x][cell.y + 1].hasJustDoubleMoved))
+						|| (cell.x === 4 && cell.y + 1 < 8 && this.board[cell.x][cell.y + 1].hasJustDoubleMoved))
                             result.push(newCell(cell.x + 1, cell.y + 1));
                         if ((cell.y - 1 >= 0 && this.board[cell.x + 1][cell.y - 1].color === PieceColor.BLACK)
-						|| (cell.x === 4 && this.board[cell.x][cell.y - 1].hasJustDoubleMoved))
+						|| (cell.x === 4 && cell.y - 1 >= 0 && this.board[cell.x][cell.y - 1].hasJustDoubleMoved))
                             result.push(newCell(cell.x + 1, cell.y - 1));
                     }
                     else if (cell.x - 1 >= 0) {
@@ -184,10 +184,10 @@ function getNewGame() {
                             result.push(newCell(cell.x - 1, cell.y));
                         }
                         if ((cell.y + 1 < 8 && this.board[cell.x - 1][cell.y + 1].color === PieceColor.WHITE)
-						|| (cell.x === 3 && this.board[cell.x][cell.y + 1].hasJustDoubleMoved))
+						|| (cell.x === 3 && cell.y + 1 < 8 && this.board[cell.x][cell.y + 1].hasJustDoubleMoved))
                             result.push(newCell(cell.x - 1, cell.y + 1));
                         if ((cell.y - 1 >= 0 && this.board[cell.x - 1][cell.y - 1].color === PieceColor.WHITE)
-						|| (cell.x === 3 && this.board[cell.x][cell.y - 1].hasJustDoubleMoved))
+						|| (cell.x === 3 && cell.y - 1 >= 0 &&this.board[cell.x][cell.y - 1].hasJustDoubleMoved))
                             result.push(newCell(cell.x - 1, cell.y - 1));
                     }
                     break;
@@ -461,7 +461,8 @@ function getNewGame() {
                         engine.board[i][j] = {
                             piece: PieceType.TOWER,
                             color: (i + 1) % 2,
-                            hasMoved: false
+                            hasMoved: false,
+							hasJustDoubleMoved: false
                         };
                         break;
                     case 1:
@@ -469,7 +470,8 @@ function getNewGame() {
                         engine.board[i][j] = {
                             piece: PieceType.KNIGHT,
                             color: (i + 1) % 2,
-                            hasMoved: false
+                            hasMoved: false,
+							hasJustDoubleMoved: false
                         };
                         break;
                     case 2:
@@ -477,21 +479,24 @@ function getNewGame() {
                         engine.board[i][j] = {
                             piece: PieceType.BISHOP,
                             color: (i + 1) % 2,
-                            hasMoved: false
+                            hasMoved: false,
+							hasJustDoubleMoved: false
                         };
                         break;
                     case 3:
                         engine.board[i][j] = {
                             piece: PieceType.KING,
                             color: (i + 1) % 2,
-                            hasMoved: false
+                            hasMoved: false,
+							hasJustDoubleMoved: false
                         };
                         break;
                     case 4:
                         engine.board[i][j] = {
                             piece: PieceType.QUEEN,
                             color: (i + 1) % 2,
-                            hasMoved: false
+                            hasMoved: false,
+							hasJustDoubleMoved: false
                         };
                         break;
                 }
