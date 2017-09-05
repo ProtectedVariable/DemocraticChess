@@ -1,6 +1,5 @@
 "use strict";
 
-const BASE_TIME = 60;
 const PLAY_PAGE = `<div class="left">
     <div>Welcome to the chat room</div>
     <div id="chat"></div>
@@ -234,6 +233,9 @@ function onMessageReceived(msg) {
             break;
         case messageType.CHANGE:
             client.teamChange(message.params);
+            break;
+        default:
+            console.log(message);
             break;
     }
 }
