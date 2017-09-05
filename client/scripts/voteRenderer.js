@@ -14,7 +14,7 @@ function voteRenderer(context) {
                     this.ctx.fillStyle = this.colorFromVote(vote);
                     this.arrow(vote.startCell.y * tileSize + tileSize / 2, vote.startCell.x * tileSize  + tileSize / 2, vote.endCell.y * tileSize  + tileSize / 2, vote.endCell.x * tileSize  + tileSize / 2);
                     this.ctx.fillStyle = "#000000";
-                    this.ctx.fillText(""+value, vote.endCell.y * tileSize + + tileSize / 2, vote.endCell.x * tileSize + tileSize / 2);
+                    this.ctx.fillText(""+value, vote.endCell.y * tileSize + tileSize / 2, vote.endCell.x * tileSize + tileSize / 2);
                 }
             }
         },
@@ -24,13 +24,23 @@ function voteRenderer(context) {
             let headlen = 10;
             this.ctx.lineWidth = 10;
             let angle = Math.atan2(toy-fromy,tox-fromx);
+
             this.ctx.beginPath();
             this.ctx.moveTo(fromx, fromy);
             this.ctx.lineTo(tox, toy);
-            this.ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/6),toy-headlen*Math.sin(angle-Math.PI/6));
-            this.ctx.moveTo(tox, toy);
-            this.ctx.lineTo(tox-headlen*Math.cos(angle+Math.PI/6),toy-headlen*Math.sin(angle+Math.PI/6));
             this.ctx.stroke();
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(tox, toy);
+            this.ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),toy-headlen*Math.sin(angle-Math.PI/7));
+
+            this.ctx.lineTo(tox-headlen*Math.cos(angle+Math.PI/7),toy-headlen*Math.sin(angle+Math.PI/7));
+
+            this.ctx.lineTo(tox, toy);
+            this.ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),toy-headlen*Math.sin(angle-Math.PI/7));
+
+            this.ctx.stroke();
+            this.ctx.fill();
         },
 
         colorFromVote : function(vote) {

@@ -163,15 +163,10 @@ function chessClient() {
 
         removePlayer : function(player) {
             this.addToChat("Server",`Player ${player.name} left`);
-            let elem = document.getElementById(player.name);
-            elem.parentNode.removeChild(elem);
         },
 
         addPlayer : function(player) {
             this.addToChat("Server", "Player "+player.name+" has joined team "+this.getTeamName(player.team));
-            if(player.name !== this.name) {
-                document.getElementById("info").innerHTML += "<li id=\""+player.name+"\" class=\""+this.getTeamName(player.team)+"\">"+player.name+"</li>";
-            }
         },
 
         applyMove : function(mv) {
@@ -181,8 +176,9 @@ function chessClient() {
         },
 
         setPlayerList : function(lst) {
+            document.getElementById("info").innerHTML = "";
             lst.forEach(function(player) {
-                document.getElementById("info").innerHTML += "<li id=\""+player.name+"\" class=\""+this.getTeamName(player.team)+"\">"+player.name+"</li>";
+                document.getElementById("info").innerHTML += "<li id=\""+player.name+"\" class=\""+this.getTeamName(player.team)+"\">"+player.name+" "+player.points+"</li>";
             }, this);
         },
 
