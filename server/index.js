@@ -25,6 +25,20 @@ let turnTimeOut;
 
 //TODO at end of the game, show result, open chat to everybody, and after 1 minute, reset the game
 
+function countVote(voteArray) {
+    if (voteArray.length === 0) return 0;
+    return voteArray.reduce((sum, y) => sum + y.points, 0);
+}
+
+function assignNewPoints(voteArray) {
+    voteArray.forEach((player, index) => player.points += (voteArray.length - index));
+}
+
+function sendListOfPlayers() {
+    let playersList = clients.map(client => client.player).filter(player => player.name !== undefined);
+    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.LIST, playersList)));
+}
+
 function chooseVote() {
     if (votesCount === 0) {
         //current team forfeits
@@ -37,12 +51,16 @@ function chooseVote() {
         let bestCount = 0;
         let bestMoveString = "";
         for (let key in votes) {
-            if (votes[key].length > bestCount)
+            let count = countVote(votes[key]);
+            if (count > bestCount) {
+                bestCount = count;
                 bestMoveString = key;
+            }
         }
         log.info(`We chose the move: ${bestMoveString}`);
         let moveToMake = JSON.parse(bestMoveString);
-
+        assignNewPoints(votes[bestMoveString]);
+        sendListOfPlayers();
         log.info(`Making the move on the server`);
         engine.move(moveToMake);
         broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, moveToMake)));
@@ -115,7 +133,7 @@ function client(socket, id, player) {
 }
 
 function player(pseudo) {
-    let user = {name: pseudo, team: undefined, waiting: true};
+    let user = {name: pseudo, team: undefined, waiting: true, points: 1};
 
     function pickTeam() {
         //or team with less people
@@ -183,9 +201,8 @@ function parseMessage(data) {
 
 
                 //sending player list
-                log.info(`Sending player list to ${player.name}`);
-                let playersList = clients.map(client => client.player).filter(player => player.name !== undefined);
-                client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.LIST, playersList)));
+                log.info(`Sending new player list to everybody`);
+                sendListOfPlayers();
 
                 //sending team to player
                 log.info(`Sending team to player ${player.name}`);
@@ -281,6 +298,7 @@ server.on("connection", (ws) => {
                 log.info(`Player ${client.player.name} with id ${id} disconnected`);
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.PLAYER_LEFT, client.player)));
                 clients.splice(index, 1);
+                sendListOfPlayers();
                 //reevaluating if we need to wait
                 doWeWait();
             }
