@@ -219,7 +219,7 @@ function parseMessage(data) {
                             log.info(`Vote already found for ${player.name}, removing it...`);
                             votes[key].splice(index);
                             votesCount -= 1;
-                            broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.DEL_VOTE, JSON.parse(key))));
+                            broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.DEL_VOTE, JSON.parse(key))), player.team);
                         }
                     }
 
@@ -233,7 +233,7 @@ function parseMessage(data) {
                         votes[movementKey] = [player];
                     }
                     votesCount += 1;
-                    broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, movement)));
+                    broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, movement)), player.team);
 
 
                     if (votesCount === clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length) {
@@ -289,7 +289,7 @@ server.on("connection", (ws) => {
         if (clients.length === 0 || realPlayers.every(client => client.player.team === chess.PieceColor.BLACK) || realPlayers.every(client => client.player.team === chess.PieceColor.WHITE)) {
             log.info("Everybody left, resetting the board");
             engine = chess.getNewGame();
-            broadcastToAll(comm.communication(-1,comm.newMessage(comm.messageType.CHAT,comm.chat(undefined,"Resetting the game"))));
+            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHAT, comm.chat(undefined, "Resetting the game"))));
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));
         }
     });
