@@ -1,5 +1,7 @@
 "use strict";
 
+const MAX_LINE_WIDTH = 15;
+
 function voteRenderer(context) {
     return {
         votes : {},
@@ -12,17 +14,16 @@ function voteRenderer(context) {
                 if(value > 0) {
                     this.ctx.strokeStyle = this.colorFromVote(vote);
                     this.ctx.fillStyle = this.colorFromVote(vote);
-                    this.arrow(vote.startCell.y * tileSize + tileSize / 2, vote.startCell.x * tileSize  + tileSize / 2, vote.endCell.y * tileSize  + tileSize / 2, vote.endCell.x * tileSize  + tileSize / 2);
+                    this.arrow(vote.startCell.y * tileSize + tileSize / 2, vote.startCell.x * tileSize  + tileSize / 2, vote.endCell.y * tileSize  + tileSize / 2, vote.endCell.x * tileSize  + tileSize / 2, value+1);
                     this.ctx.fillStyle = "#000000";
-                    this.ctx.fillText(""+value, vote.endCell.y * tileSize + tileSize / 2, vote.endCell.x * tileSize + tileSize / 2);
                 }
             }
         },
 
-        arrow : function(fromx, fromy, tox, toy) {
+        arrow : function(fromx, fromy, tox, toy, width) {
             console.log(fromx+" "+fromy+" "+tox+" "+toy);
             let headlen = 10;
-            this.ctx.lineWidth = 10;
+            this.ctx.lineWidth = Math.min(width, MAX_LINE_WIDTH);
             let angle = Math.atan2(toy-fromy,tox-fromx);
 
             this.ctx.beginPath();
