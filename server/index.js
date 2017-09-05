@@ -51,6 +51,7 @@ function chooseVote() {
 
         if (isCheck) {
             let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
+            //TODO add specific message for CHECK?
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
             if (isCheckMate) {
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
@@ -91,6 +92,7 @@ function doWeWait() {
     }
 
     if (!oldWaiting && waiting) {
+        currentTeam = undefined;
         clearTimeout(turnTimeOut);
     }
     log.info(`NEED TO WAIT: ${waiting}`);
@@ -209,7 +211,6 @@ function parseMessage(data) {
 
                     log.info("Collecting vote");
                     let movementKey = JSON.stringify(movement);
-                    console.log(movementKey);
 
                     //deleting old vote for player if already had one
                     for (let key in votes) {
@@ -284,9 +285,12 @@ server.on("connection", (ws) => {
                 doWeWait();
             }
         });
-        if (clients.length === 0) {
+        let realPlayers = clients.filter(c => c.player.name !== undefined);
+        if (clients.length === 0 || realPlayers.every(client => client.player.team === chess.PieceColor.BLACK) || realPlayers.every(client => client.player.team === chess.PieceColor.WHITE)) {
             log.info("Everybody left, resetting the board");
             engine = chess.getNewGame();
+            broadcastToAll(comm.communication(-1,comm.newMessage(comm.messageType.CHAT,comm.chat(undefined,"Resetting the game"))));
+            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));
         }
     });
     log.info(`New connection from ${user.id}`);
