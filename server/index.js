@@ -23,6 +23,7 @@ setTimeout(sendWaitingMessage, 1000 * 10);
 
 let turnTimeOut;
 
+//TODO use BASE_TIME
 //TODO at end of the game, show result, open chat to everybody, and after 1 minute, reset the game
 
 function countVote(voteArray) {
@@ -36,6 +37,19 @@ function assignNewPoints(voteArray) {
 
 function sendListOfPlayers() {
     let playersList = clients.map(client => client.player).filter(player => player.name !== undefined);
+    playersList.sort((a, b) => {
+        if (a.team < b.team) {
+            return 1;
+        } else if (a.team > b.team) {
+            return -1;
+        } else {
+            if (a.points > b.points) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+    });
     broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.LIST, playersList)));
 }
 
@@ -69,7 +83,7 @@ function chooseVote() {
 
         if (isCheck) {
             let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
-            //TODO add specific message for CHECK?
+            //TODO add specific message for CHECK? And higlight king when it's the case
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
             if (isCheckMate) {
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
@@ -135,6 +149,7 @@ function client(socket, id, player) {
 function player(pseudo) {
     let user = {name: pseudo, team: undefined, waiting: true, points: 1};
 
+    //TODO we should call pick team after choosing the name perhaps, not at the creation of the user
     function pickTeam() {
         //or team with less people
         let numberOfWhites = clients.filter(client => client.player.team === chess.PieceColor.WHITE).length;
