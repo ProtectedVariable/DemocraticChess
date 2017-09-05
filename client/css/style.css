@@ -71,6 +71,9 @@ textarea {
 
 #turn {
     text-align: center;
+    font-family: "Orbitron";
+    font-size: 20pt;
+    padding-top: 10%;
 }
 
 #chat {
@@ -80,9 +83,10 @@ textarea {
     background-color: #eeeeee;
     border: 1px solid #aaaaaa;
     color: #777777;
+    width: 98%;
     height: 450px;
     margin-right: 5px;
-    overflow-y: auto;
+    overflow-y:scroll;
     word-wrap: break-word;
     margin-top: 16%;
 }
@@ -90,17 +94,25 @@ textarea {
 #info {
     resize: none;
     pointer-events: none;
-    margin-top: 16%;
     height: 500px;
-    cursor: default;
+    overflow:hidden;
     text-align: left;
+    overflow-y:scroll;
     background-color: #eeeeee;
     border: 1px solid #aaaaaa;
 }
 
+#playbanner {
+    text-align: center;
+    font-family: "Orbitron";
+    font-size: 20pt;
+    padding-top: 10%;
+}
+
 #message {
-    width: 100%;
-    margin-right: 5px;
+    display: inline-block;
+    box-sizing: border-box;
+    width: 98%;
 }
 
 ul {

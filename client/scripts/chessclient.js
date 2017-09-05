@@ -1,7 +1,7 @@
 "use strict";
 
 const PLAY_PAGE = `<div class="left">
-    <div>Welcome to the chat room</div>
+    <div id="playbanner"></div>
     <div id="chat"></div>
     <input id="message" type="text" placeholder="Type your message here" onkeypress="client.handleChatMessage(event, 'message')"/>
 </div>
@@ -239,6 +239,7 @@ function onMessageReceived(msg) {
             break;
         case messageType.TEAM:
             client.team = message.params;
+            document.getElementById("playbanner").innerHTML = client.name +" - "+client.getTeamName(client.team);
             break;
         case messageType.MOVED:
             client.applyMove(message.params);
