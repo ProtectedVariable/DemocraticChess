@@ -102,6 +102,7 @@ function chessClient() {
         handleClick : function() {
             if(this.playing) {
                 this.chessRenderer.refreshGame(this.engine.board, images);
+                this.updateCheck();
                 let y = Math.floor(this.mouseCoord.y / tileSize);
                 let x = Math.floor(this.mouseCoord.x / tileSize);
                 let selected = this.engine.board[y][x];
@@ -172,6 +173,7 @@ function chessClient() {
             this.engine.move(mv);
             this.voteRenderer.clearVotes();
             this.chessRenderer.refreshGame(this.engine.board, images);
+            this.updateCheck();
         },
 
         setPlayerList : function(lst) {
@@ -179,6 +181,37 @@ function chessClient() {
             lst.forEach(function(player) {
                 document.getElementById("info").innerHTML += "<li id=\"pl"+player.name+"\" class=\""+this.getTeamName(player.team)+"\">"+player.name+" - "+player.points+"</li>";
             }, this);
+        },
+
+        updateCheck : function() {
+            let wx = 0;
+            let wy = 0;
+            let bx = 0;
+            let by = 0;
+            let x = 0;
+            let y = 0;
+            while(x < 8 && y < 8) {
+                if(this.engine.board[x][y].piece === PieceType.KING) {
+                    if(this.engine.board[x][y].color === PieceColor.BLACK) {
+                        bx = x;
+                        by = y;
+                    } else {
+                        wx = x;
+                        wy = y;
+                    }
+                }
+                x += 1;
+                if(x >= 8) {
+                    y += 1;
+                    x = 0;
+                }
+            }
+            if(this.engine.checkCheck(PieceColor.BLACK)) {
+                this.chessRenderer.checkTile(bx, by, PieceColor.BLACK);
+            }
+            if(this.engine.checkCheck(PieceColor.WHITE)) {
+                this.chessRenderer.checkTile(wx, wy, PieceColor.WHITE);
+            }
         },
 
         updateVotes : function(vote, add) {
@@ -190,6 +223,7 @@ function chessClient() {
                 document.getElementById("pl"+vote.player.name).innerHTML = vote.player.name+" - "+vote.player.points;
             }
             this.chessRenderer.refreshGame(this.engine.board, images);
+            this.updateCheck();
             this.voteRenderer.renderVotes();
         },
 

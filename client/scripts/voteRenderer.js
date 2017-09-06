@@ -43,7 +43,6 @@ function voteRenderer(context) {
                 let vote = JSON.parse(key);
                 if(vote.startCell.x === move.startCell.x && vote.startCell.y === move.startCell.y) {
                     if(vote.endCell.x === move.endCell.x && vote.endCell.y === move.endCell.y) {
-                        console.log("i");
                         break;
                     }
                 }

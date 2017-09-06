@@ -66,6 +66,12 @@ function chessRenderer(pcanvas, context) {
                 this.ctx.fillText(String.fromCharCode(65+x), x*tileSize+tileSize/2-10, 8*tileSize+17);
                 x += 1;
             }
+        },
+
+        checkTile : function(y, x, color) {
+            this.ctx.fillStyle = highlightColor2;
+            this.ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+            this.ctx.drawImage(images[color*10+PieceType.KING], x*tileSize, y*tileSize, tileSize, tileSize);
         }
     };
 }
