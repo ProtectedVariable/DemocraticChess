@@ -1,3 +1,11 @@
+/**
+ * @file client/chessClient.js
+ * @brief Source file containing the client-side application main functions
+ *
+ * @authors Thomas Ibanez, Maxime Lovino, Vincent Tournier
+ * @date September 6, 2017
+ * @version 1.0
+ */
 "use strict";
 
 const PLAY_PAGE = `<div class="left">
@@ -223,6 +231,14 @@ function chessClient() {
                 document.getElementById("pl"+vote.player.name).innerHTML = vote.player.name+" - "+vote.player.points;
             }
             this.chessRenderer.refreshGame(this.engine.board, images);
+            let moves = this.engine.getAllPossibleMoves(newCell(this.lastY, this.lastX));
+            if(this.selectedPiece !== undefined && this.selectedPiece.color === this.team) {
+                if(moves !== undefined) {
+                    moves.forEach(function(move) {
+                        this.chessRenderer.highlightTile(move.y, move.x, (this.engine.board[move.x][move.y].piece !== PieceType.EMPTY));
+                    }, this);
+                }
+            }
             this.updateCheck();
             this.voteRenderer.renderVotes();
         },

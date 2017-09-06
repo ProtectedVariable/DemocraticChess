@@ -1,3 +1,11 @@
+/**
+ * @file client/socketClient.js
+ * @brief Source file containing the client socket main functions
+ *
+ * @authors Thomas Ibanez, Maxime Lovino, Vincent Tournier
+ * @date September 6, 2017
+ * @version 1.0
+ */
 "use strict";
 
 const SERVER_URL = "ws://localhost:8080";

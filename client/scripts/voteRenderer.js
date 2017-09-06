@@ -1,3 +1,11 @@
+/**
+ * @file client/voteRenderer.js
+ * @brief Source file containing the vote-related rendering
+ *
+ * @authors Thomas Ibanez, Maxime Lovino, Vincent Tournier
+ * @date September 6, 2017
+ * @version 1.0
+ */
 "use strict";
 
 const MAX_LINE_WIDTH = 15;
@@ -49,6 +57,10 @@ function voteRenderer(context) {
                 i += 1;
             }
             return COLORS[i % COLOR_MOD];
+        },
+
+        renderPromoteMenu : function(color) {
+            
         },
 
         arrow : function(fromx, fromy, tox, toy, width) {

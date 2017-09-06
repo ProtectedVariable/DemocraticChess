@@ -60,6 +60,11 @@ textarea {
     margin-left: 5%;
 }
 
+#chessboard {
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #loginfo {
     font-family: "Helvetica";
     font-size: 30pt;

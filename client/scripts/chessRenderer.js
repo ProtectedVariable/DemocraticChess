@@ -1,3 +1,11 @@
+/**
+ * @file client/chessRenderer.js
+ * @brief Source file containing the client-side application chess-related rendering
+ *
+ * @authors Thomas Ibanez, Maxime Lovino, Vincent Tournier
+ * @date September 6, 2017
+ * @version 1.0
+ */
 "use strict";
 
 const color1 = "#f0d9b5";
