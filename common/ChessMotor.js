@@ -386,12 +386,15 @@ function getNewGame() {
                 !this.board[7][3].hasMoved)
                 return true;
             return false;
-        },
-
-		promotePawn : function(cell, type) {
-			if(this.board[cell.x][cell.y].piece === PieceType.PAWN && type >= PieceType.TOWER && type <= PieceType.QUEEN)
-				this.board[cell.x][cell.y].piece = type;
-		},
+        }, 
+	    
+	promotePawn : function(cell, type) {
+	    if(this.board[cell.x][cell.y].piece === PieceType.PAWN && type >= PieceType.TOWER && type <= PieceType.QUEEN) {
+                if((this.board[cell.x][cell.y].color === PieceColor.BLACK && cell.x === 0)
+                || (this.board[cell.x][cell.y].color === PieceColor.WHITE && cell.x === 7))
+		    this.board[cell.x][cell.y].piece = type;
+	    }
+	},
 
         //Teste si le roi de la couleur color est en echec
         checkCheck: function (color, noKing) {
