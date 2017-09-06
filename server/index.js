@@ -105,6 +105,8 @@ function chooseVote() {
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
             if (isCheckMate) {
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, "Resetting in 5 seconds"))));
+                setTimeout(resetGame, 5 * 1000);
             }
         }
 
@@ -333,6 +335,16 @@ function parseMessage(data) {
 }
 
 
+function resetGame() {
+    //TODO white should start again, send player list
+    log.info("Resetting the board and points for everybody");
+    clients.forEach(c => c.player.points = 1);
+    engine = chess.getNewGame();
+    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHAT, comm.chat(undefined, "Resetting the game"))));
+    sendListOfPlayers();
+    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));
+}
+
 server.on("connection", (ws) => {
 
     //On connection, will join team and add to player list (assign team)
@@ -361,11 +373,7 @@ server.on("connection", (ws) => {
         });
         let realPlayers = clients.filter(c => c.player.name !== undefined);
         if (clients.length === 0 || realPlayers.every(client => client.player.team === chess.PieceColor.BLACK) || realPlayers.every(client => client.player.team === chess.PieceColor.WHITE)) {
-            log.info("Resetting the board and points for everybody");
-            clients.forEach(c => c.player.points = 1);
-            engine = chess.getNewGame();
-            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHAT, comm.chat(undefined, "Resetting the game"))));
-            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));
+            resetGame();
         }
     });
     log.info(`New connection from ${user.id}`);
