@@ -1,6 +1,20 @@
 "use strict";
 
 const MAX_LINE_WIDTH = 15;
+const COLOR_MOD = 11;
+const COLORS = [
+    "#FF0000",
+    "#00FF00",
+    "#0000FF",
+    "#A0A0FF",
+    "#00AAFF",
+    "#AA00FF",
+    "#FF00AA",
+    "#FFAA00",
+    "#3eefaa",
+    "#398b60",
+    "e668c4"
+];
 
 function voteRenderer(context) {
     return {
@@ -8,20 +22,37 @@ function voteRenderer(context) {
         ctx : context,
 
         renderVotes : function() {
+            let i = 0;
             for(let key in this.votes) {
                 let value = this.votes[key];
                 let vote = JSON.parse(key);
                 if(value > 0) {
-                    this.ctx.strokeStyle = this.colorFromVote(vote);
-                    this.ctx.fillStyle = this.colorFromVote(vote);
+                    this.ctx.strokeStyle = COLORS[i % COLOR_MOD];
+                    this.ctx.fillStyle = COLORS[i % COLOR_MOD];
                     this.arrow(vote.startCell.y * tileSize + tileSize / 2, vote.startCell.x * tileSize  + tileSize / 2, vote.endCell.y * tileSize  + tileSize / 2, vote.endCell.x * tileSize  + tileSize / 2, value+1);
                     this.ctx.fillStyle = "#000000";
                 }
+                i += 1;
             }
         },
 
+        getVoteColor : function(move) {
+            let i = 0;
+            for(let key in this.votes) {
+                let value = this.votes[key];
+                let vote = JSON.parse(key);
+                if(vote.startCell.x === move.startCell.x && vote.startCell.y === move.startCell.y) {
+                    if(vote.endCell.x === move.endCell.x && vote.endCell.y === move.endCell.y) {
+                        console.log("i");
+                        break;
+                    }
+                }
+                i += 1;
+            }
+            return COLORS[i % COLOR_MOD];
+        },
+
         arrow : function(fromx, fromy, tox, toy, width) {
-            console.log(fromx+" "+fromy+" "+tox+" "+toy);
             let headlen = 10;
             this.ctx.lineWidth = Math.min(width, MAX_LINE_WIDTH);
             let angle = Math.atan2(toy-fromy,tox-fromx);
@@ -42,10 +73,6 @@ function voteRenderer(context) {
 
             this.ctx.stroke();
             this.ctx.fill();
-        },
-
-        colorFromVote : function(vote) {
-            return "#" + (2 * vote.startCell.x + 1).toString(16) + (2 * vote.endCell.x + 1).toString(16) + (2 * vote.endCell.x + 1).toString(16) + (2 * vote.endCell.y + 1).toString(16) + (2 * vote.startCell.y + 1).toString(16) + (2 * vote.endCell.y + 1).toString(16);
         },
 
         addVote : function(vote) {

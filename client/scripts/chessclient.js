@@ -6,7 +6,7 @@ const PLAY_PAGE = `<div class="left">
     <input id="message" type="text" placeholder="Type your message here" onkeypress="client.handleChatMessage(event, 'message')"/>
 </div>
 <div class="center">
-    <canvas id="chessboard" width="678" height="682" onclick="client.handleClick()"></canvas>
+    <canvas id="chessboard" width="698" height="682" onclick="client.handleClick()"></canvas>
 </div>
 <div class="right">
     <div id="turn">
@@ -73,7 +73,6 @@ function chessClient() {
         voteRenderer : undefined,
         team : undefined,
         id : -1,
-        open : false,
         name : "",
         engine : undefined,
         mouseCoord : undefined,
@@ -81,7 +80,7 @@ function chessClient() {
         lastMoves : undefined,
         lastX : undefined,
         lastY : undefined,
-        time : 60,
+        time : BASE_TIME,
         playing : false,
         teamPlaying : -1,
 
@@ -178,15 +177,17 @@ function chessClient() {
         setPlayerList : function(lst) {
             document.getElementById("info").innerHTML = "";
             lst.forEach(function(player) {
-                document.getElementById("info").innerHTML += "<li id=\""+player.name+"\" class=\""+this.getTeamName(player.team)+"\">"+player.name+" "+player.points+"</li>";
+                document.getElementById("info").innerHTML += "<li id=\"pl"+player.name+"\" class=\""+this.getTeamName(player.team)+"\">"+player.name+" - "+player.points+"</li>";
             }, this);
         },
 
-        updateVotes : function(move, add) {
+        updateVotes : function(vote, add) {
             if(add) {
-                this.voteRenderer.addVote(move);
+                this.voteRenderer.addVote(vote.move);
+                document.getElementById("pl"+vote.player.name).innerHTML = vote.player.name+" - "+vote.player.points + "    <span style=\"color:"+this.voteRenderer.getVoteColor(vote.move)+"\">▬▬▬</span>"
             } else {
-                this.voteRenderer.removeVote(move);
+                this.voteRenderer.removeVote(vote.move);
+                document.getElementById("pl"+vote.player.name).innerHTML = vote.player.name+" - "+vote.player.points;
             }
             this.chessRenderer.refreshGame(this.engine.board, images);
             this.voteRenderer.renderVotes();
@@ -257,7 +258,6 @@ function onMessageReceived(msg) {
             client.updateVotes(message.params, false);
             break;
         case messageType.NEW_VOTE:
-            console.log("new vote");
             client.updateVotes(message.params, true);
             break;
         default:

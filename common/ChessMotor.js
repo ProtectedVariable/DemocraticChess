@@ -1,6 +1,6 @@
 "use strict";
 
-const BASE_TIME = 60;
+const BASE_TIME = 40;
 
 const PieceType = {
     EMPTY: 0,
@@ -514,4 +514,5 @@ if (typeof exports != 'undefined') {
     exports.newCell = newCell;
     exports.newMove = newMove;
     exports.getNewGame = getNewGame;
+    exports.BASE_TIME = BASE_TIME;
 }
