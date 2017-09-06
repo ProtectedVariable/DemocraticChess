@@ -132,3 +132,7 @@ ul {
 body {
     background-color: #eeeeee;
 }
+
+p, h3 {
+    font-family: "Helvetica";
+}
