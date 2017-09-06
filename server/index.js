@@ -13,22 +13,30 @@ log.info(`Server is alive on IP ${ip.address()}`);
 let clients = [];
 let votes = {};
 let votesCount = 0;
+const turnTime = chess.BASE_TIME * 1000;
+const waitingCheckTime = 1000 * 10;
 
 let engine = chess.getNewGame();
 
 let waiting = true;
 let currentTeam = undefined;
 
-setTimeout(sendWaitingMessage, 1000 * 10);
+setTimeout(sendWaitingMessage, waitingCheckTime);
 
 let turnTimeOut;
 
-//TODO use BASE_TIME
+//TODO kick anyone who doesn't vote after 3 times
+//TODO add time sync messages
+//TODO only use points to resolve draws
 //TODO at end of the game, show result, open chat to everybody, and after 1 minute, reset the game
 
-function countVote(voteArray) {
+function weightedCountVote(voteArray) {
     if (voteArray.length === 0) return 0;
     return voteArray.reduce((sum, y) => sum + y.points, 0);
+}
+
+function vote(player, move) {
+    return {player, move};
 }
 
 function assignNewPoints(voteArray) {
@@ -53,6 +61,22 @@ function sendListOfPlayers() {
     broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.LIST, playersList)));
 }
 
+function sortVotes(keyArray) {
+    keyArray.sort((a, b) => {
+        if (votes[a] < votes[b]) {
+            return 1;
+        } else if (votes[a] > votes[b]) {
+            return -1;
+        } else {
+            if (weightedCountVote(votes[a]) > weightedCountVote(votes[b])) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+    });
+}
+
 function chooseVote() {
     if (votesCount === 0) {
         //current team forfeits
@@ -62,15 +86,9 @@ function chooseVote() {
         //TODO should we kick someone who didn't vote?
         //we choose the best vote
         log.info("Choosing what move to make");
-        let bestCount = 0;
-        let bestMoveString = "";
-        for (let key in votes) {
-            let count = countVote(votes[key]);
-            if (count > bestCount) {
-                bestCount = count;
-                bestMoveString = key;
-            }
-        }
+        let keys = Object.keys(votes);
+        sortVotes(keys);
+        let bestMoveString = keys[0];
         log.info(`We chose the move: ${bestMoveString}`);
         let moveToMake = JSON.parse(bestMoveString);
         assignNewPoints(votes[bestMoveString]);
@@ -111,7 +129,7 @@ function switchTeam() {
         }
     });
     broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHANGE, currentTeam)));
-    turnTimeOut = setTimeout(chooseVote, 1000 * 60)
+    turnTimeOut = setTimeout(chooseVote, turnTime)
 }
 
 
@@ -136,7 +154,7 @@ function sendWaitingMessage() {
         broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, "Waiting for another player"))));
     }
     //launch if one team is empty as well
-    setTimeout(sendWaitingMessage, 1000 * 10);
+    setTimeout(sendWaitingMessage, waitingCheckTime);
 }
 
 
@@ -174,14 +192,24 @@ function broadcastToAll(communication) {
     clients.forEach(client => {
         if (client.socket.readyState === webSocket.OPEN && client.player.name !== undefined) {
             //TODO try-catch in case of multiple close at the same time
-            client.socket.send(communication);
+            try {
+                client.socket.send(communication);
+            } catch (e) {
+                log.error(`Couldn't send to a client, got error : ${e}`);
+            }
         }
     })
 }
 
 function broadcastToTeam(communication, team) {
     let members = clients.filter(client => client.player.team === team && client.player.name !== undefined);
-    members.forEach(member => member.socket.send(communication));
+    members.forEach(member => {
+        try {
+            member.socket.send(communication)
+        } catch (e) {
+            log.error(`Couldn't send to a client, got error : ${e}`);
+        }
+    });
 }
 
 function parseMessage(data) {
@@ -200,10 +228,11 @@ function parseMessage(data) {
             //TODO check if we already have a user with the same name and send a flag back
             let name = message.params.trim();
             log.info(`Trying name ${name}`);
-            if (clients.some(client => client.player.name === name) || name === "") {
+            if (clients.some(client => client.player.name === name) || name === "" || name === "server" || name === "Server") {
                 log.info(`Name ${name} is already taken`);
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PSEUDO_TAKEN, undefined)))
             } else {
+                //TODO set client.player here directly and it's undefined until then
                 player.name = name;
                 log.info(`New player for id ${id} is ${player.name} of team ${player.team}`);
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PSEUDO_OK, undefined)));
@@ -251,7 +280,7 @@ function parseMessage(data) {
                             log.info(`Vote already found for ${player.name}, removing it...`);
                             votes[key].splice(index);
                             votesCount -= 1;
-                            broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.DEL_VOTE, JSON.parse(key))), player.team);
+                            broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.DEL_VOTE, vote(player, JSON.parse(key)))), player.team);
                         }
                     }
 
@@ -265,7 +294,7 @@ function parseMessage(data) {
                         votes[movementKey] = [player];
                     }
                     votesCount += 1;
-                    broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, movement)), player.team);
+                    broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, vote(player, movement))), player.team);
 
 
                     if (votesCount === clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length) {
@@ -288,8 +317,15 @@ function parseMessage(data) {
 
         } else if (message.type === comm.messageType.CHAT && client.player.name !== undefined) {
             //This is a chat from a client
-            log.info(`New message from ${player.name}: ${message.params}`);
-            broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(player, message.params))), player.team);
+            let chatContent = message.params;
+            log.info(`New message from ${player.name}: ${chatContent}`);
+
+            if (chatContent.startsWith("/s")) {
+                chatContent = chatContent.substr(2).trim();
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(player, chatContent))));
+            } else {
+                broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(player, chatContent))), player.team);
+            }
         }
 
     }
@@ -311,7 +347,12 @@ server.on("connection", (ws) => {
         clients.forEach((client, index) => {
             if (client.socket === ws) {
                 log.info(`Player ${client.player.name} with id ${id} disconnected`);
-                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.PLAYER_LEFT, client.player)));
+                //TODO join team only after having a name?
+                if (client.player.name !== undefined) {
+                    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.PLAYER_LEFT, client.player)));
+                } else {
+                    log.info("Not broadcasting leaving because it hasn't a name");
+                }
                 clients.splice(index, 1);
                 sendListOfPlayers();
                 //reevaluating if we need to wait
@@ -320,7 +361,8 @@ server.on("connection", (ws) => {
         });
         let realPlayers = clients.filter(c => c.player.name !== undefined);
         if (clients.length === 0 || realPlayers.every(client => client.player.team === chess.PieceColor.BLACK) || realPlayers.every(client => client.player.team === chess.PieceColor.WHITE)) {
-            log.info("Everybody left, resetting the board");
+            log.info("Resetting the board and points for everybody");
+            clients.forEach(c => c.player.points = 1);
             engine = chess.getNewGame();
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHAT, comm.chat(undefined, "Resetting the game"))));
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));

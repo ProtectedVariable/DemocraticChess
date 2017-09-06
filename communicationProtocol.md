@@ -30,7 +30,7 @@ The following types of messages will be available:
 |Board state | `BOARD` | The board as an array| Single user|
 |Player list | `LIST` | The players list | Single user|
 |ID transmission | `ID` | ID as number | Single user|
-|Vote for movement | `NEW_VOTE` |Move object `{StartCell, EndCell}`| Team|
+|Vote for movement | `NEW_VOTE` |Vote object `{player, move}`| Team|
 | New Chat | `INCOMING_CHAT` | Chat object `{Source, message}`| Team |
 | Move done | `MOVED` |Move object `{StartCell, EndCell}` | All players|
 |Result / End of game | `RESULT` | id of winner team | All players|
@@ -39,5 +39,5 @@ The following types of messages will be available:
 | Player left | `PLAYER_LEFT` | Player object | All players |
 |Pseudo already taken   | `PSEUDO_TAKEN`  | nothing  | Single user  |
 |Pseudo OK   | `PSEUDO_OK`  | nothing  | Single user  |
-|Vote removed by other player   | `DEL_VOTE`  |  Move object `{StartCell, EndCell}` |  Team|
+|Vote removed by other player   | `DEL_VOTE`  |  Vote object `{player, move}` |  Team|
 |Player can start playing from now on   | `PLAY`   | nothing   | Single user  |
