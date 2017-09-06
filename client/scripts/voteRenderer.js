@@ -59,10 +59,6 @@ function voteRenderer(context) {
             return COLORS[i % COLOR_MOD];
         },
 
-        renderPromoteMenu : function(color) {
-            
-        },
-
         arrow : function(fromx, fromy, tox, toy, width) {
             let headlen = 10;
             this.ctx.lineWidth = Math.min(width, MAX_LINE_WIDTH);

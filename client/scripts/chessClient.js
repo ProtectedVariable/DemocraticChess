@@ -135,6 +135,9 @@ function chessClient() {
                             });
 
                             if(voteOK) {
+                                if((x === 0 || x === 7) && this.selectedPiece.piece === PieceType.PAWN) {
+
+                                }
                                 this.socketClient.sendMove(this.lastY, this.lastX, y, x);
                             }
                         }
