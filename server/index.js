@@ -1,9 +1,19 @@
+/**
+ * @file server/index.js
+ * @brief Source file containing the websocket server for Democratic Chess
+ *
+ * @authors Maxime Lovino, Thomas Ibanez, Vincent Tournier
+ * @date September 6, 2017
+ * @version 1.0
+ */
+
 "use strict";
 const webSocket = require("ws");
 const comm = require("../common/communication.js");
 const chess = require("../common/ChessMotor.js");
 const logger = require("log");
 const ip = require("ip");
+const uuid = require("uuid/v1");
 
 const log = new logger("debug");
 
@@ -11,6 +21,7 @@ const server = new webSocket.Server({port: 8080, family: 4});
 log.info(`Server is alive on IP ${ip.address()}`);
 
 let clients = [];
+let clientsByID = {};
 let votes = {};
 let votesCount = 0;
 const turnTime = chess.BASE_TIME * 1000;
@@ -25,9 +36,18 @@ setTimeout(sendWaitingMessage, waitingCheckTime);
 
 let turnTimeOut;
 
+//TODO notify on browser when team change https://developer.mozilla.org/en-US/docs/Web/API/notification
+//TODO display chat commands on chat
+//TODO colorize messages differently according to scope (server to clients, clients to team, clients to everyone), perhaps send 3 different types from server according to the message type
+//TODO scrollable player list
+
+//TODO display something bigger on victory, use RESULT message as well to do something
+
+
+//TODO Check on close on client
+
 //TODO kick anyone who doesn't vote after 3 times
 //TODO add time sync messages
-//TODO only use points to resolve draws
 //TODO at end of the game, show result, open chat to everybody, and after 1 minute, reset the game
 
 function weightedCountVote(voteArray) {
@@ -80,10 +100,18 @@ function sortVotes(keyArray) {
 function chooseVote() {
     if (votesCount === 0) {
         //current team forfeits
-        log.error(`No vote were made by team ${currentTeam}, switching team for now`);
-        switchTeam();
+        log.error(`No vote were made by team ${currentTeam}, kicking everybody`);
+        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `Kicking team that didn't play`))));
+        clients.forEach((c, index) => {
+            if (c.player.team === currentTeam) {
+                c.socket.close();
+                clients.splice(index, 1);
+                clientsByID[c.id] = undefined;
+            }
+        });
+        sendListOfPlayers();
+        resetGame();
     } else {
-        //TODO should we kick someone who didn't vote?
         //we choose the best vote
         log.info("Choosing what move to make");
         let keys = Object.keys(votes);
@@ -95,13 +123,14 @@ function chooseVote() {
         sendListOfPlayers();
         log.info(`Making the move on the server`);
         engine.move(moveToMake);
+        if (moveToMake.promotion !== undefined) {
+            engine.promotePawn(moveToMake.endCell, moveToMake.promotion);
+        }
         broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, moveToMake)));
-
         let isCheck = engine.checkCheck((currentTeam + 1) % 2);
 
         if (isCheck) {
             let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
-            //TODO add specific message for CHECK? And higlight king when it's the case
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
             if (isCheckMate) {
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
@@ -193,7 +222,6 @@ function player(pseudo) {
 function broadcastToAll(communication) {
     clients.forEach(client => {
         if (client.socket.readyState === webSocket.OPEN && client.player.name !== undefined) {
-            //TODO try-catch in case of multiple close at the same time
             try {
                 client.socket.send(communication);
             } catch (e) {
@@ -221,13 +249,12 @@ function parseMessage(data) {
     let id = content.id;
     let message = content.message;
 
-    if (clients[id] !== undefined) {
-        let client = clients[id];
+    if (clientsByID[id] !== undefined) {
+        let client = clientsByID[id];
         let player = client.player;
 
         if (message.type === comm.messageType.NAME) {
             //we could check if it has already a name
-            //TODO check if we already have a user with the same name and send a flag back
             let name = message.params.trim();
             log.info(`Trying name ${name}`);
             if (clients.some(client => client.player.name === name) || name === "" || name === "server" || name === "Server") {
@@ -280,7 +307,7 @@ function parseMessage(data) {
                         let index = votes[key].find(p => p.name === player.name);
                         if (index !== undefined) {
                             log.info(`Vote already found for ${player.name}, removing it...`);
-                            votes[key].splice(index);
+                            votes[key].splice(index, 1);
                             votesCount -= 1;
                             broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.DEL_VOTE, vote(player, JSON.parse(key)))), player.team);
                         }
@@ -314,7 +341,7 @@ function parseMessage(data) {
 
             }
 
-            //TODO we should think about voting for choice of promotion transformation
+            //TODO we should think about voting for choice of promotion transformation => perhaps we can keep it like that, where you vote for all at the same time, only client-side
 
 
         } else if (message.type === comm.messageType.CHAT && client.player.name !== undefined) {
@@ -336,7 +363,7 @@ function parseMessage(data) {
 
 
 function resetGame() {
-    //TODO white should start again, send player list
+    //TODO white should start again, send player list, perhaps put team to undefined and it will work out
     log.info("Resetting the board and points for everybody");
     clients.forEach(c => c.player.points = 1);
     engine = chess.getNewGame();
@@ -346,19 +373,17 @@ function resetGame() {
 }
 
 server.on("connection", (ws) => {
+    let id = uuid();
 
-    //On connection, will join team and add to player list (assign team)
-    //Generate a random ID and send it, so the client will send it with their messages
-    //On disconnect, remove from team
-    let id = clients.length;
     let user = client(ws, id, player(undefined));
+    clientsByID[id] = user;
     clients.push(user);
 
     ws.on("message", parseMessage);
     ws.on("close", () => {
         clients.forEach((client, index) => {
             if (client.socket === ws) {
-                log.info(`Player ${client.player.name} with id ${id} disconnected`);
+                log.info(`Player ${client.player.name} with id ${client.id} disconnected`);
                 //TODO join team only after having a name?
                 if (client.player.name !== undefined) {
                     broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.PLAYER_LEFT, client.player)));
@@ -366,6 +391,7 @@ server.on("connection", (ws) => {
                     log.info("Not broadcasting leaving because it hasn't a name");
                 }
                 clients.splice(index, 1);
+                clientsByID[client.id] = undefined;
                 sendListOfPlayers();
                 //reevaluating if we need to wait
                 doWeWait();
