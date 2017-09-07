@@ -63,11 +63,11 @@ function image(src) {
   return img;
 }
 
-const images = [0,image("./images/black_pawn.png"), image("./images/black_tower.png"),
- image("./images/black_knight.png"), image("./images/black_bishop.png"),
+const images = [0,image("./images/black_pawn.png"), image("./images/black_knight.png"),
+ image("./images/black_bishop.png"), image("./images/black_tower.png"),
  image("./images/black_queen.png"), image("./images/black_king.png"),7,8,9,10,
- image("./images/white_pawn.png"), image("./images/white_tower.png"),
- image("./images/white_knight.png"), image("./images/white_bishop.png"),
+ image("./images/white_pawn.png"), image("./images/white_knight.png"),
+ image("./images/white_bishop.png"), image("./images/white_tower.png"),
  image("./images/white_queen.png"), image("./images/white_king.png")];
 
 
@@ -163,10 +163,6 @@ function chessClient() {
             }
         },
 
-        waitForPromotion : function() {
-
-        },
-
         selectPromotion : function(piece) {
             this.socketClient.sendMove(this.lastY, this.lastX, this.promotionY, this.promotionX, piece);
             document.getElementById("promotion").style.display = "none";
@@ -254,6 +250,9 @@ function chessClient() {
             if(add) {
                 this.voteRenderer.addVote(vote.move);
                 document.getElementById("pl"+vote.player.name).innerHTML = vote.player.name+" - "+vote.player.points + "    <span style=\"color:"+this.voteRenderer.getVoteColor(vote.move)+"\">▬▬▬</span>"
+                if(vote.move.promotion !== undefined) {
+                    document.getElementById("pl"+vote.player.name).innerHTML += "  &#" + (9818 - vote.move.promotion) + ";";
+                 }
             } else {
                 this.voteRenderer.removeVote(vote.move);
                 document.getElementById("pl"+vote.player.name).innerHTML = vote.player.name+" - "+vote.player.points;

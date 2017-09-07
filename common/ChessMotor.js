@@ -5,9 +5,9 @@ const BASE_TIME = 40;
 const PieceType = {
     EMPTY: 0,
     PAWN: 1,
-    TOWER: 2,
-    KNIGHT: 3,
-    BISHOP: 4,
+    KNIGHT: 2,
+    BISHOP: 3,
+    TOWER: 4,
     QUEEN: 5,
     KING: 6
 };
