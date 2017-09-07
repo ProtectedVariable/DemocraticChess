@@ -102,13 +102,17 @@ function chooseVote() {
         //current team forfeits
         log.error(`No vote were made by team ${currentTeam}, kicking everybody`);
         broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `Kicking team that didn't play`))));
-        clients.forEach((c, index) => {
+        clients.forEach((c) => {
             if (c.player.team === currentTeam) {
+                log.info(`Kicking user ${c.player.name}`);
                 c.socket.close();
-                clients.splice(index, 1);
                 clientsByID[c.id] = undefined;
+            } else {
+                log.info(`NOT kicking ${c.player.name} because is of team ${c.player.team}`);
             }
         });
+        //This should work
+        clients = clients.filter(c => c.player.team !== currentTeam);
         sendListOfPlayers();
         resetGame();
     } else {
@@ -370,6 +374,7 @@ function resetGame() {
     broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.CHAT, comm.chat(undefined, "Resetting the game"))));
     sendListOfPlayers();
     broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));
+    doWeWait();
 }
 
 server.on("connection", (ws) => {
