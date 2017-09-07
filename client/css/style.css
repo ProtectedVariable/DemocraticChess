@@ -51,6 +51,12 @@ textarea {
     font-family: "Orbitron";
 }
 
+#promotion {
+    display: none;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #timer {
     font-family: "Orbitron", Times, serif;
     font-size: 50px;

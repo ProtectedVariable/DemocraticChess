@@ -14,6 +14,7 @@ const PLAY_PAGE = `<div class="left">
     <input id="message" type="text" placeholder="Type your message here" onkeypress="client.handleChatMessage(event, 'message')"/>
 </div>
 <div class="center">
+    <div id="promotion"><img src="images/grey_queen.png" onclick="client.selectPromotion(PieceType.QUEEN)"/><img src="images/grey_tower.png" onclick="client.selectPromotion(PieceType.TOWER)"/><img src="images/grey_knight.png" onclick="client.selectPromotion(PieceType.KNIGHT)"/><img src="images/grey_bishop.png" onclick="client.selectPromotion(PieceType.BISHOP)"/></div>
     <canvas id="chessboard" width="698" height="682" onclick="client.handleClick()"></canvas>
 </div>
 <div class="right">
@@ -88,6 +89,8 @@ function chessClient() {
         lastMoves : undefined,
         lastX : undefined,
         lastY : undefined,
+        promotionX : undefined,
+        promotionY : undefined,
         time : BASE_TIME,
         playing : false,
         teamPlaying : -1,
@@ -108,6 +111,9 @@ function chessClient() {
         },
 
         handleClick : function() {
+            if(this.teamPlaying !== this.team) {
+                return;
+            }
             if(this.playing) {
                 this.chessRenderer.refreshGame(this.engine.board, images);
                 this.updateCheck();
@@ -135,10 +141,16 @@ function chessClient() {
                             });
 
                             if(voteOK) {
-                                if((x === 0 || x === 7) && this.selectedPiece.piece === PieceType.PAWN) {
-
+                                if(this.selectedPiece.piece === PieceType.PAWN && ((this.selectedPiece.color === PieceColor.WHITE && y === 7) || (this.selectedPiece.color === PieceColor.BLACK && y === 0))) {
+                                    //promotion move
+                                    document.getElementById("promotion").style.display = "inline-block";
+                                    this.promotionX = x;
+                                    this.promotionY = y;
+                                    return;
+                                } else {
+                                    //standard move
+                                    this.socketClient.sendMove(this.lastY, this.lastX, y, x);
                                 }
-                                this.socketClient.sendMove(this.lastY, this.lastX, y, x);
                             }
                         }
                     }
@@ -149,6 +161,15 @@ function chessClient() {
                 this.selectedPiece = selected;
                 this.lastMoves = moves;
             }
+        },
+
+        waitForPromotion : function() {
+
+        },
+
+        selectPromotion : function(piece) {
+            this.socketClient.sendMove(this.lastY, this.lastX, this.promotionY, this.promotionX, piece);
+            document.getElementById("promotion").style.display = "none";
         },
 
         getMousePos : function(canvas, e) {
@@ -182,6 +203,10 @@ function chessClient() {
 
         applyMove : function(mv) {
             this.engine.move(mv);
+            if(mv.promotion !== undefined) {
+                console.log("promotion");
+                this.engine.board[mv.endCell.x][mv.endCell.y].piece = mv.promotion;
+            }
             this.voteRenderer.clearVotes();
             this.chessRenderer.refreshGame(this.engine.board, images);
             this.updateCheck();

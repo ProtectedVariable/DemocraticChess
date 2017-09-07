@@ -128,7 +128,9 @@ function chooseVote() {
         log.info(`Making the move on the server`);
         engine.move(moveToMake);
         if (moveToMake.promotion !== undefined) {
-            engine.promotePawn(moveToMake.endCell, moveToMake.promotion);
+            if(!engine.promotePawn(moveToMake.endCell, moveToMake.promotion)) {
+                moveToMake.promotion = undefined;
+            }
         }
         broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, moveToMake)));
         let isCheck = engine.checkCheck((currentTeam + 1) % 2);

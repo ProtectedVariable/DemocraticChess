@@ -32,8 +32,11 @@ function socketClient() {
             }
         },
 
-        sendMove : function(bx, by, tx, ty) {
+        sendMove : function(bx, by, tx, ty, p) {
             let move = newMove(newCell(bx, by), newCell(tx, ty));
+            if(p !== undefined) {
+                move["promotion"] = p;
+            }
             this.socket.send(communication(this.id, newMessage(messageType.MOVE, move)));
         }
     };

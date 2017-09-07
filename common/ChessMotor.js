@@ -391,9 +391,12 @@ function getNewGame() {
         promotePawn : function(cell, type) {
     	    if(this.board[cell.x][cell.y].piece === PieceType.PAWN && type >= PieceType.TOWER && type <= PieceType.QUEEN) {
                     if((this.board[cell.x][cell.y].color === PieceColor.BLACK && cell.x === 0)
-                    || (this.board[cell.x][cell.y].color === PieceColor.WHITE && cell.x === 7))
-    		    this.board[cell.x][cell.y].piece = type;
+                    || (this.board[cell.x][cell.y].color === PieceColor.WHITE && cell.x === 7)) {
+    		                  this.board[cell.x][cell.y].piece = type;
+                              return true;
+                }
     	    }
+            return false;
         },
 
         //Teste si le roi de la couleur color est en echec
