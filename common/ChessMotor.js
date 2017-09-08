@@ -312,13 +312,13 @@ function getNewGame() {
                             }
                         }
                     }
-                    if (this.isSmallCastlingPossible(test.color)) {
+                    if (!noCheckCheck && this.isSmallCastlingPossible(test.color)) {
                         if (test.color === PieceColor.WHITE)
                             result.push(newCell(0, 1));
                         else
                             result.push(newCell(7, 1));
                     }
-                    if (this.isGreatCastlingPossible(test.color)) {
+                    if (!noCheckCheck && this.isGreatCastlingPossible(test.color)) {
                         if (test.color === PieceColor.WHITE)
                             result.push(newCell(0, 5));
                         else
@@ -353,16 +353,32 @@ function getNewGame() {
                 this.board[0][0].piece === PieceType.TOWER &&
                 this.board[0][3].piece === PieceType.KING &&
                 !this.board[0][0].hasMoved &&
-                !this.board[0][3].hasMoved)
-                return true;
+                !this.board[0][3].hasMoved) {
+					let attacked = this.getAllAttackedCell(player, true)
+					let isAttack = false;
+					attacked.forEach(move => {
+						if(move.x === 0 && (move.y === 2 || move.y === 3))
+							isAttack = true;
+					});
+					console.log("LOL");
+					console.log(isAttack);
+					return !isAttack;
+				}
             if (player === PieceColor.BLACK &&
                 this.board[7][1].piece === PieceType.EMPTY &&
                 this.board[7][2].piece === PieceType.EMPTY &&
                 this.board[7][0].piece === PieceType.TOWER &&
                 this.board[7][3].piece === PieceType.KING &&
                 !this.board[7][0].hasMoved &&
-                !this.board[7][3].hasMoved)
-                return true;
+                !this.board[7][3].hasMoved) {
+					let attacked = this.getAllAttackedCell(player, true)
+					let isAttack = false;
+					attacked.forEach(move => {
+						if(move.x === 7 && (move.y === 2 || move.y === 3))
+							isAttack = true;
+					});
+					return !isAttack;
+			}
             return false;
         },
 
@@ -374,8 +390,15 @@ function getNewGame() {
                 this.board[0][7].piece === PieceType.TOWER &&
                 this.board[0][3].piece === PieceType.KING &&
                 !this.board[0][7].hasMoved &&
-                !this.board[0][3].hasMoved)
-                return true;
+                !this.board[0][3].hasMoved) {
+					let attacked = this.getAllAttackedCell(player, true)
+					let isAttack = false;
+					attacked.forEach(move => {
+						if(move.x === 0 && (move.y === 4 || move.y === 3))
+							isAttack = true;
+					});
+					return !isAttack
+				}
             if (player === PieceColor.BLACK &&
                 this.board[7][4].piece === PieceType.EMPTY &&
                 this.board[7][5].piece === PieceType.EMPTY &&
@@ -383,8 +406,15 @@ function getNewGame() {
                 this.board[7][7].piece === PieceType.TOWER &&
                 this.board[7][3].piece === PieceType.KING &&
                 !this.board[7][7].hasMoved &&
-                !this.board[7][3].hasMoved)
-                return true;
+                !this.board[7][3].hasMoved) {
+					let attacked = this.getAllAttackedCell(player, true)
+					let isAttack = false;
+					attacked.forEach(move => {
+						if(move.x === 7 && (move.y === 4 || move.y === 3))
+							isAttack = true;
+					});
+					return !isAttack
+				}
             return false;
         },
 
@@ -398,6 +428,20 @@ function getNewGame() {
     	    }
             return false;
         },
+
+		getAllAttackedCell: function (color, noKing) {
+			let result = [];
+			for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    if (this.board[i][j].color !== color && this.board[i][j].piece !== PieceType.EMPTY) {
+                        let moves = this.getAllPossibleMoves(newCell(i, j), noKing);
+                        if (moves !== undefined)
+                            moves.forEach(move => result.push(move));
+                    }
+                }
+            }
+			return result;
+		},
 
         //Teste si le roi de la couleur color est en echec
         checkCheck: function (color, noKing) {
