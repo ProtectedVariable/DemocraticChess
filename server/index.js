@@ -128,8 +128,10 @@ function chooseVote() {
         log.info(`Making the move on the server`);
         engine.move(moveToMake);
         if (moveToMake.promotion !== undefined) {
-            if(!engine.promotePawn(moveToMake.endCell, moveToMake.promotion)) {
+            if (!engine.promotePawn(moveToMake.endCell, moveToMake.promotion)) {
                 moveToMake.promotion = undefined;
+            } else {
+                log.info(`We promote a pawn to a ${moveToMake.promotion}`);
             }
         }
         broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.MOVED, moveToMake)));
@@ -303,6 +305,15 @@ function parseMessage(data) {
 
                     //the move is valid
                     log.info(`Received a valid move, gonna consider this vote`);
+
+                    if (movement.promotion !== undefined) {
+                        let copyEngine = engine.getBoardCopy();
+                        copyEngine.move(movement);
+                        if (!copyEngine.promotePawn(movement.endCell, movement.promotion)) {
+                            log.info("Promotion is wrong for this vote, stripping promotion part");
+                            movement.promotion = undefined;
+                        }
+                    }
 
 
                     log.info("Collecting vote");
