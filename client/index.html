@@ -12,6 +12,17 @@
       <script src="scripts/voteRenderer.js"></script>
       <script src="scripts/chessRenderer.js"></script>
       <script src="scripts/chessClient.js"></script>
+      <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+        if (!Notification) {
+          alert('Desktop notifications not available in your browser.');
+          return;
+        }
+
+        if (Notification.permission !== "granted")
+          Notification.requestPermission();
+        });
+      </script>
   </head>
     <body>
         <div class="top">

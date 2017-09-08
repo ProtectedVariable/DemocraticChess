@@ -106,11 +106,17 @@ function chessClient() {
             if(this.playing) {
                 if(this.teamPlaying === this.team) {
                     this.time -= 1;
+                    if(this.time <= 10) {
+                        document.getElementById("timer").style.color = "red";
+                    } else {
+                        document.getElementById("timer").style.color = "#777777";
+                    }
                     if(this.time < 0) {
                         this.time = 0;
                     }
                     document.getElementById("timer").innerHTML = this.time;
                 } else {
+                    document.getElementById("timer").style.color = "#777777";
                     this.time = BASE_TIME;
                     document.getElementById("timer").innerHTML = "Waiting on opponents";
                 }
@@ -204,11 +210,11 @@ function chessClient() {
         },
 
         removePlayer : function(player) {
-            this.addToChat("Server",`Player ${player.name} left`);
+            this.addToChat("Server",`Player ${player.name} left`, messageType.INCOMING_SERVER_CHAT);
         },
 
         addPlayer : function(player) {
-            this.addToChat("Server", "Player "+player.name+" has joined team "+this.getTeamName(player.team));
+            this.addToChat("Server", "Player "+player.name+" has joined team "+this.getTeamName(player.team), messageType.INCOMING_SERVER_CHAT);
         },
 
         applyMove : function(mv) {
@@ -294,6 +300,18 @@ function chessClient() {
         teamChange : function(team) {
             this.teamPlaying = team;
             document.getElementById("turn").innerHTML = this.getTeamName(team)+"'s turn";
+            if(this.teamPlaying === this.team) {
+                if (Notification.permission === "granted") {
+                    let notification = new Notification('Democratic Chess', {
+                        icon: 'https://upload.wikimedia.org/wikipedia/commons/f/f1/Chess_ndt60.png',
+                        body: "It's now your turn !",
+                    });
+
+                    notification.onclick = function () {
+                        window.focus();      
+                    };
+                }
+            }
         },
 
         handleChatMessage : function(e, tagId) {
