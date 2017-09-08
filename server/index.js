@@ -210,6 +210,7 @@ function doWeWait() {
     if (!oldWaiting && waiting) {
         currentTeam = undefined;
         clearTimeout(turnTimeOut);
+        //TODO client should know if we are waiting
     }
     log.info(`NEED TO WAIT: ${waiting}`);
 }
@@ -304,17 +305,17 @@ function parseMessage(data) {
 
                 //send initial info about the game
 
+                //sending team to player
+                log.info(`Sending team to player ${player.name}`);
+                client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.TEAM, player.team)));
+
                 log.info(`Sending board to ${player.name}`);
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.BOARD, engine.board)));
-
 
                 //sending player list
                 log.info(`Sending new player list to everybody`);
                 sendListOfPlayers();
 
-                //sending team to player
-                log.info(`Sending team to player ${player.name}`);
-                client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.TEAM, player.team)));
 
                 //reevaluating if we need to wait
 
