@@ -14,5 +14,5 @@ The client will draw the game UI using Canvas and will have access to the game e
 
 # Who will work on what?
  - Maxime Lovino will work on the client-server communication, parsing of the messages and interaction with the game engine and client.
- - Vincent Tournier will write the game engine with help from Thomas Ibanez.
+ - Vincent Tournier will write the game engine.
  - Thomas Ibanez will take care of the frontend.
