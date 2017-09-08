@@ -301,14 +301,14 @@ function chessClient() {
             this.teamPlaying = team;
             document.getElementById("turn").innerHTML = this.getTeamName(team)+"'s turn";
             if(this.teamPlaying === this.team) {
-                if (Notification.permission === "granted") {
+                if (Notification.permission === "granted" && !document.hasFocus()) {
                     let notification = new Notification('Democratic Chess', {
                         icon: 'https://upload.wikimedia.org/wikipedia/commons/f/f1/Chess_ndt60.png',
                         body: "It's now your turn !",
                     });
 
                     notification.onclick = function () {
-                        window.focus();      
+                        window.focus();
                     };
                 }
             }
