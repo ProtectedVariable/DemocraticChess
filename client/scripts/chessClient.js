@@ -129,6 +129,7 @@ function chessClient() {
             }
             if(this.playing) {
                 this.chessRenderer.refreshGame(this.engine.board, images);
+                this.voteRenderer.renderVotes();
                 this.updateCheck();
                 let y = Math.floor(this.mouseCoord.y / tileSize);
                 let x = Math.floor(this.mouseCoord.x / tileSize);
