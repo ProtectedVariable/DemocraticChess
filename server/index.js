@@ -29,6 +29,7 @@ let votes = {};
 let votesCount = 0;
 const turnTime = chess.BASE_TIME * 1000;
 const waitingCheckTime = 1000 * 10;
+const VOTE_DELAY = 1000;
 
 let engine = chess.getNewGame();
 
@@ -53,6 +54,7 @@ let turnTimeOut;
 //TODO add time sync messages
 //TODO at end of the game, show result, open chat to everybody, and after 1 minute, reset the game
 
+
 function deleteVotesFromPlayer(player) {
     for (let key in votes) {
         let index = votes[key].find(p => p.name === player.name);
@@ -71,7 +73,7 @@ function canWeChoose() {
         //everybody voted
         log.info(`Everybody voted`);
         clearTimeout(turnTimeOut);
-        chooseVote();
+        setTimeout(chooseVote, VOTE_DELAY);
     }
 }
 
@@ -298,7 +300,7 @@ function parseMessage(data) {
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PSEUDO_TAKEN, undefined)))
             } else {
                 //TODO set client.player here directly and it's undefined until then
-                player.name = name;
+                player.name = sanitize(name);
                 log.info(`New player for id ${id} is ${player.name} of team ${player.team}`);
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PSEUDO_OK, undefined)));
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.NEW_PLAYER, player)));
@@ -379,21 +381,21 @@ function parseMessage(data) {
         } else if (message.type === comm.messageType.CHAT && client.player.name !== undefined) {
             //This is a chat from a client
             let chatContent = message.params;
-			if (chatContent.length <= 160) {
+            if (chatContent.length <= 160) {
 
-				chatContent = sanitize(chatContent);
-	            log.info(`New message from ${player.name}: ${chatContent}`);
+                chatContent = sanitize(chatContent);
+                log.info(`New message from ${player.name}: ${chatContent}`);
 
-	            if (chatContent.startsWith("/s")) {
-	                chatContent = chatContent.substr(2).trim();
-	                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_GLOBAL_CHAT, comm.chat(player, chatContent))));
-	            } else {
-	                broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_TEAM_CHAT, comm.chat(player, chatContent))), player.team);
-	            }
-			}
-			else {
-				log.info("Chat message dropped, too long : " + chatContent);
-			}
+                if (chatContent.startsWith("/s")) {
+                    chatContent = chatContent.substr(2).trim();
+                    broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_GLOBAL_CHAT, comm.chat(player, chatContent))));
+                } else {
+                    broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_TEAM_CHAT, comm.chat(player, chatContent))), player.team);
+                }
+            }
+            else {
+                log.info("Chat message dropped, too long : " + chatContent);
+            }
         }
 
     }
@@ -401,13 +403,13 @@ function parseMessage(data) {
 }
 
 function sanitize(str) {
-	let result = str.replace("<", "&lt;");
-	while(result.includes("<"))
-		result = result.replace("<", "&lt;");
-	while(result.includes(">"))
-		result = result.replace(">", "&gt;");
+    let result = str.replace("<", "&lt;");
+    while (result.includes("<"))
+        result = result.replace("<", "&lt;");
+    while (result.includes(">"))
+        result = result.replace(">", "&gt;");
 
-	return result;
+    return result;
 }
 
 function resetGame() {
