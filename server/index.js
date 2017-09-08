@@ -379,20 +379,36 @@ function parseMessage(data) {
         } else if (message.type === comm.messageType.CHAT && client.player.name !== undefined) {
             //This is a chat from a client
             let chatContent = message.params;
-            log.info(`New message from ${player.name}: ${chatContent}`);
+			if (chatContent.length <= 160) {
 
-            if (chatContent.startsWith("/s")) {
-                chatContent = chatContent.substr(2).trim();
-                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_GLOBAL_CHAT, comm.chat(player, chatContent))));
-            } else {
-                broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_TEAM_CHAT, comm.chat(player, chatContent))), player.team);
-            }
+				chatContent = sanitize(chatContent);
+	            log.info(`New message from ${player.name}: ${chatContent}`);
+
+	            if (chatContent.startsWith("/s")) {
+	                chatContent = chatContent.substr(2).trim();
+	                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_GLOBAL_CHAT, comm.chat(player, chatContent))));
+	            } else {
+	                broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_TEAM_CHAT, comm.chat(player, chatContent))), player.team);
+	            }
+			}
+			else {
+				log.info("Chat message dropped, too long : " + chatContent);
+			}
         }
 
     }
 
 }
 
+function sanitize(str) {
+	let result = str.replace("<", "&lt;");
+	while(result.includes("<"))
+		result = result.replace("<", "&lt;");
+	while(result.includes(">"))
+		result = result.replace(">", "&gt;");
+
+	return result;
+}
 
 function resetGame() {
     //TODO white should start again, send player list, perhaps put team to undefined and it will work out
