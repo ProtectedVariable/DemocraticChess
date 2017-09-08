@@ -33,6 +33,12 @@ function joinGame() {
     client.name = name;
 }
 
+function nameKeyPress(e) {
+    if(e.which === 13 || e.keyCode === 13) {
+        joinGame();
+    }
+}
+
 function nameOK() {
     document.body.innerHTML = PLAY_PAGE;
     let canvas = document.getElementById("chessboard");
@@ -166,6 +172,7 @@ function chessClient() {
         selectPromotion : function(piece) {
             this.socketClient.sendMove(this.lastY, this.lastX, this.promotionY, this.promotionX, piece);
             document.getElementById("promotion").style.display = "none";
+            this.selectedPiece = undefined;
         },
 
         getMousePos : function(canvas, e) {

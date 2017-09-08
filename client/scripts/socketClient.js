@@ -22,6 +22,9 @@ function socketClient() {
                 alert("An error occured, you are not connected");
                 return;
             };
+            this.socket.onclose = function(e) {
+                 location.reload();
+            };
         },
 
         sendName : function(name) {
