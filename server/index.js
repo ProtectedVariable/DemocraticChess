@@ -69,7 +69,7 @@ function deleteVotesFromPlayer(player) {
 
 
 function canWeChoose() {
-    if (votesCount === clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length) {
+    if (votesCount === clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length && clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length > 0) {
         //everybody voted
         log.info(`Everybody voted`);
         clearTimeout(turnTimeOut);
@@ -205,13 +205,14 @@ function doWeWait() {
     let oldWaiting = waiting;
     let realPlayers = clients.filter(c => c.player.name !== undefined);
     waiting = realPlayers.length === 1 || realPlayers.every(client => client.player.team === chess.PieceColor.BLACK) || realPlayers.every(client => client.player.team === chess.PieceColor.WHITE);
+
     if (oldWaiting && !waiting) {
         switchTeam();
     }
 
     if (!oldWaiting && waiting) {
-        currentTeam = undefined;
         clearTimeout(turnTimeOut);
+        currentTeam = undefined;
         //TODO client should know if we are waiting
     }
     log.info(`NEED TO WAIT: ${waiting}`);
