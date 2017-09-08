@@ -445,14 +445,14 @@ server.on("connection", (ws) => {
                 indexToKick = index;
                 clientsByID[client.id] = undefined;
                 deleteVotesFromPlayer(client.player);
-                sendListOfPlayers();
                 //reevaluating if we need to wait
-                doWeWait();
             }
         });
         if (indexToKick !== undefined) {
             clients.splice(indexToKick, 1);
         }
+        doWeWait();
+        sendListOfPlayers();
         canWeChoose();
         let realPlayers = clients.filter(c => c.player.name !== undefined);
         if (clients.length === 0 || realPlayers.every(client => client.player.team === chess.PieceColor.BLACK) || realPlayers.every(client => client.player.team === chess.PieceColor.WHITE)) {
