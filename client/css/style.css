@@ -104,11 +104,11 @@ textarea {
 
 #info {
     resize: none;
-    pointer-events: none;
     height: 500px;
     overflow:hidden;
     text-align: left;
     overflow-y:scroll;
+    max-height: 500px;
     background-color: #eeeeee;
     border: 1px solid #aaaaaa;
 }

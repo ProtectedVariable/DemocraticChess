@@ -10,7 +10,7 @@
 
 const PLAY_PAGE = `<div class="left">
     <div id="playbanner"></div>
-    <div id="chat"></div>
+    <div id="chat">Welcome to the chat, use /s prior to your message to send to everyone, otherwise it's team-only chat</div>
     <input id="message" type="text" placeholder="Type your message here" onkeypress="client.handleChatMessage(event, 'message')"/>
 </div>
 <div class="center">
@@ -52,7 +52,7 @@ function nameOK() {
 }
 
 function nameTaken() {
-    document.getElementById("loginfo").innerHTML = "This name is already taken, please choose another one";
+    document.getElementById("loginfo").innerHTML = "This name is not available, please choose another one";
     document.getElementById("loginfo").style.display = "block";
 }
 
@@ -100,6 +100,7 @@ function chessClient() {
         time : BASE_TIME,
         playing : false,
         teamPlaying : -1,
+        votes : {},
 
         updateTimer : function() {
             if(this.playing) {
@@ -191,8 +192,14 @@ function chessClient() {
             }
         },
 
-        addToChat : function(sender, message) {
-            document.getElementById("chat").innerHTML += `<br/><b>${sender}</b>: ${message}`;
+        addToChat : function(sender, message, type) {
+            if(type === messageType.INCOMING_SERVER_CHAT) {
+                document.getElementById("chat").innerHTML += `<br/><i>Server: ${message}</i>`;
+            } else if(type === messageType.INCOMING_GLOBAL_CHAT) {
+                document.getElementById("chat").innerHTML += `<br/>[ALL] <b>${sender}</b>: ${message}`;
+            } else {
+                document.getElementById("chat").innerHTML += `<br/><b>${sender}</b>: ${message}`;
+            }
             document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
         },
 
@@ -210,6 +217,7 @@ function chessClient() {
                 console.log("promotion");
                 this.engine.board[mv.endCell.x][mv.endCell.y].piece = mv.promotion;
             }
+            this.votes = {};
             this.voteRenderer.clearVotes();
             this.chessRenderer.refreshGame(this.engine.board, images);
             this.updateCheck();
@@ -218,7 +226,11 @@ function chessClient() {
         setPlayerList : function(lst) {
             document.getElementById("info").innerHTML = "";
             lst.forEach(function(player) {
-                document.getElementById("info").innerHTML += "<li id=\"pl"+player.name+"\" class=\""+this.getTeamName(player.team)+"\">"+player.name+" - "+player.points+"</li>";
+                let append = "";
+                if(this.votes[player.name] !== undefined) {
+                    append = "    <span style=\"color:"+this.voteRenderer.getVoteColor(this.votes[player.name].move)+"\">▬▬▬</span>";
+                }
+                document.getElementById("info").innerHTML += "<li id=\"pl"+player.name+"\" class=\""+this.getTeamName(player.team)+"\">"+player.name+" - "+player.points+append+"</li>";
             }, this);
         },
 
@@ -255,12 +267,14 @@ function chessClient() {
 
         updateVotes : function(vote, add) {
             if(add) {
+                this.votes[vote.player.name] = vote;
                 this.voteRenderer.addVote(vote.move);
                 document.getElementById("pl"+vote.player.name).innerHTML = vote.player.name+" - "+vote.player.points + "    <span style=\"color:"+this.voteRenderer.getVoteColor(vote.move)+"\">▬▬▬</span>"
                 if(vote.move.promotion !== undefined) {
                     document.getElementById("pl"+vote.player.name).innerHTML += "  &#" + (9818 - vote.move.promotion) + ";";
                  }
             } else {
+                this.votes[vote.player.name] = undefined;
                 this.voteRenderer.removeVote(vote.move);
                 document.getElementById("pl"+vote.player.name).innerHTML = vote.player.name+" - "+vote.player.points;
             }
@@ -310,8 +324,10 @@ function onMessageReceived(msg) {
             let player = message.params;
             client.addPlayer(player);
             break;
-        case messageType.INCOMING_CHAT:
-            client.addToChat(message.params.sender, message.params.message);
+        case messageType.INCOMING_TEAM_CHAT:
+        case messageType.INCOMING_GLOBAL_CHAT:
+        case messageType.INCOMING_SERVER_CHAT:
+            client.addToChat(message.params.sender, message.params.message, message.type);
             break;
         case messageType.BOARD:
             client.engine = getNewGame();
@@ -324,6 +340,7 @@ function onMessageReceived(msg) {
             break;
         case messageType.TEAM:
             client.team = message.params;
+            //client.chessRenderer.rotation = client.team * Math.PI;
             document.getElementById("playbanner").innerHTML = client.name +" - "+client.getTeamName(client.team);
             break;
         case messageType.MOVED:
