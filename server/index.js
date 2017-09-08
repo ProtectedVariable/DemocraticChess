@@ -17,6 +17,9 @@ const uuid = require("uuid/v1");
 
 const log = new logger("debug");
 
+
+const MAX_NAME_LENGTH = 16;
+const CHECKMATE_DELAY = 5 * 1000;
 const server = new webSocket.Server({port: 8080, family: 4});
 log.info(`Server is alive on IP ${ip.address()}`);
 
@@ -50,6 +53,28 @@ let turnTimeOut;
 //TODO add time sync messages
 //TODO at end of the game, show result, open chat to everybody, and after 1 minute, reset the game
 
+function deleteVotesFromPlayer(player) {
+    for (let key in votes) {
+        let index = votes[key].find(p => p.name === player.name);
+        if (index !== undefined) {
+            log.info(`Vote already found for ${player.name}, removing it...`);
+            votes[key].splice(index, 1);
+            votesCount -= 1;
+            broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.DEL_VOTE, vote(player, JSON.parse(key)))), player.team);
+        }
+    }
+}
+
+
+function canWeChoose() {
+    if (votesCount === clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length) {
+        //everybody voted
+        log.info(`Everybody voted`);
+        clearTimeout(turnTimeOut);
+        chooseVote();
+    }
+}
+
 function weightedCountVote(voteArray) {
     if (voteArray.length === 0) return 0;
     return voteArray.reduce((sum, y) => sum + y.points, 0);
@@ -60,7 +85,9 @@ function vote(player, move) {
 }
 
 function assignNewPoints(voteArray) {
-    voteArray.forEach((player, index) => player.points += (voteArray.length - index));
+    if (voteArray.length > 1) {
+        voteArray.forEach((player, index) => player.points += (voteArray.length - index));
+    }
 }
 
 function sendListOfPlayers() {
@@ -101,7 +128,7 @@ function chooseVote() {
     if (votesCount === 0) {
         //current team forfeits
         log.error(`No vote were made by team ${currentTeam}, kicking everybody`);
-        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `Kicking team that didn't play`))));
+        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_SERVER_CHAT, comm.chat(undefined, `Kicking team that didn't play`))));
         clients.forEach((c) => {
             if (c.player.team === currentTeam) {
                 log.info(`Kicking user ${c.player.name}`);
@@ -139,11 +166,11 @@ function chooseVote() {
 
         if (isCheck) {
             let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
-            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
+            broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_SERVER_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
             if (isCheckMate) {
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
-                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, "Resetting in 5 seconds"))));
-                setTimeout(resetGame, 5 * 1000);
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_SERVER_CHAT, comm.chat(undefined, "Resetting in 5 seconds"))));
+                setTimeout(resetGame, CHECKMATE_DELAY);
             }
         }
 
@@ -190,7 +217,7 @@ function doWeWait() {
 function sendWaitingMessage() {
 
     if (waiting) {
-        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(undefined, "Waiting for another player"))));
+        broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_SERVER_CHAT, comm.chat(undefined, "Waiting for another player"))));
     }
     //launch if one team is empty as well
     setTimeout(sendWaitingMessage, waitingCheckTime);
@@ -265,7 +292,7 @@ function parseMessage(data) {
             //we could check if it has already a name
             let name = message.params.trim();
             log.info(`Trying name ${name}`);
-            if (clients.some(client => client.player.name === name) || name === "" || name === "server" || name === "Server") {
+            if (clients.some(client => client.player.name === name) || name === "" || name === "server" || name === "Server" || name.length > MAX_NAME_LENGTH) {
                 log.info(`Name ${name} is already taken`);
                 client.socket.send(comm.communication(-1, comm.newMessage(comm.messageType.PSEUDO_TAKEN, undefined)))
             } else {
@@ -320,15 +347,7 @@ function parseMessage(data) {
                     let movementKey = JSON.stringify(movement);
 
                     //deleting old vote for player if already had one
-                    for (let key in votes) {
-                        let index = votes[key].find(p => p.name === player.name);
-                        if (index !== undefined) {
-                            log.info(`Vote already found for ${player.name}, removing it...`);
-                            votes[key].splice(index, 1);
-                            votesCount -= 1;
-                            broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.DEL_VOTE, vote(player, JSON.parse(key)))), player.team);
-                        }
-                    }
+                    deleteVotesFromPlayer(player);
 
                     //creating new vote
                     log.info(`Registering new vote for ${player.name}`);
@@ -343,12 +362,7 @@ function parseMessage(data) {
                     broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.NEW_VOTE, vote(player, movement))), player.team);
 
 
-                    if (votesCount === clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length) {
-                        //everybody voted
-                        log.info(`Everybody voted`);
-                        clearTimeout(turnTimeOut);
-                        chooseVote();
-                    }
+                    canWeChoose();
 
 
                 } else {
@@ -368,9 +382,9 @@ function parseMessage(data) {
 
             if (chatContent.startsWith("/s")) {
                 chatContent = chatContent.substr(2).trim();
-                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(player, chatContent))));
+                broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_GLOBAL_CHAT, comm.chat(player, chatContent))));
             } else {
-                broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_CHAT, comm.chat(player, chatContent))), player.team);
+                broadcastToTeam(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_TEAM_CHAT, comm.chat(player, chatContent))), player.team);
             }
         }
 
@@ -399,6 +413,7 @@ server.on("connection", (ws) => {
 
     ws.on("message", parseMessage);
     ws.on("close", () => {
+        let indexToKick = undefined;
         clients.forEach((client, index) => {
             if (client.socket === ws) {
                 log.info(`Player ${client.player.name} with id ${client.id} disconnected`);
@@ -408,13 +423,18 @@ server.on("connection", (ws) => {
                 } else {
                     log.info("Not broadcasting leaving because it hasn't a name");
                 }
-                clients.splice(index, 1);
+                indexToKick = index;
                 clientsByID[client.id] = undefined;
+                deleteVotesFromPlayer(client.player);
                 sendListOfPlayers();
                 //reevaluating if we need to wait
                 doWeWait();
             }
         });
+        if (indexToKick !== undefined) {
+            clients.splice(indexToKick, 1);
+        }
+        canWeChoose();
         let realPlayers = clients.filter(c => c.player.name !== undefined);
         if (clients.length === 0 || realPlayers.every(client => client.player.team === chess.PieceColor.BLACK) || realPlayers.every(client => client.player.team === chess.PieceColor.WHITE)) {
             resetGame();

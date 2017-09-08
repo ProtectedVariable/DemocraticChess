@@ -6,7 +6,7 @@ const messageType = {
     BOARD: 4,
     LIST: 5,
     NEW_VOTE: 6,
-    INCOMING_CHAT: 7,
+    INCOMING_TEAM_CHAT: 7,
     MOVED: 8,
     RESULT: 9,
     CHANGE: 10,
@@ -17,7 +17,8 @@ const messageType = {
     PSEUDO_OK: 15,
     DEL_VOTE: 16,
     PLAY: 17,
-
+    INCOMING_GLOBAL_CHAT: 18,
+    INCOMING_SERVER_CHAT: 19,
 };
 
 function newMessage(type, params) {
