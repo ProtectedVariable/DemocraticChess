@@ -69,7 +69,7 @@ function deleteVotesFromPlayer(player) {
 
 
 function canWeChoose() {
-    if (votesCount === clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length && clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length > 0) {
+    if (currentTeam !== undefined && votesCount === clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length && clients.filter(c => c.player.team === currentTeam && !c.player.waiting).length > 0) {
         //everybody voted
         log.info(`Everybody voted`);
         clearTimeout(turnTimeOut);
