@@ -360,8 +360,6 @@ function getNewGame() {
 						if(move.x === 0 && (move.y === 2 || move.y === 3))
 							isAttack = true;
 					});
-					console.log("LOL");
-					console.log(isAttack);
 					return !isAttack;
 				}
             if (player === PieceColor.BLACK &&

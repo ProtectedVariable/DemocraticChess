@@ -40,15 +40,8 @@ setTimeout(sendWaitingMessage, waitingCheckTime);
 
 let turnTimeOut;
 
-//TODO notify on browser when team change https://developer.mozilla.org/en-US/docs/Web/API/notification
-//TODO display chat commands on chat
-//TODO colorize messages differently according to scope (server to clients, clients to team, clients to everyone), perhaps send 3 different types from server according to the message type
-//TODO scrollable player list
 
 //TODO display something bigger on victory, use RESULT message as well to do something
-
-
-//TODO Check on close on client
 
 //TODO kick anyone who doesn't vote after 3 times
 //TODO add time sync messages
@@ -213,7 +206,7 @@ function doWeWait() {
     if (!oldWaiting && waiting) {
         clearTimeout(turnTimeOut);
         currentTeam = undefined;
-        //TODO client should know if we are waiting
+        //TODO client should know if we are waiting, by sending WAIT message so they don't count down to 0
     }
     log.info(`NEED TO WAIT: ${waiting}`);
 }
@@ -376,7 +369,6 @@ function parseMessage(data) {
 
             }
 
-            //TODO we should think about voting for choice of promotion transformation => perhaps we can keep it like that, where you vote for all at the same time, only client-side
 
 
         } else if (message.type === comm.messageType.CHAT && client.player.name !== undefined) {
@@ -414,7 +406,6 @@ function sanitize(str) {
 }
 
 function resetGame() {
-    //TODO white should start again, send player list, perhaps put team to undefined and it will work out
     log.info("Resetting the board and points for everybody");
     clients.forEach(c => c.player.points = 1);
     engine = chess.getNewGame();
