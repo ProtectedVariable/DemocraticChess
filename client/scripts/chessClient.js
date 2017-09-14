@@ -101,6 +101,7 @@ function chessClient() {
         playing : false,
         teamPlaying : -1,
         votes : {},
+        lastMove : undefined,
 
         updateTimer : function() {
             if(this.playing) {
@@ -128,7 +129,7 @@ function chessClient() {
                 return;
             }
             if(this.playing) {
-                this.chessRenderer.refreshGame(this.engine.board, images);
+                this.chessRenderer.refreshGame(this.engine.board, images, this.lastMove);
                 this.voteRenderer.renderVotes();
                 this.updateCheck();
                 let y = Math.floor(this.mouseCoord.y / tileSize);
@@ -224,9 +225,10 @@ function chessClient() {
                 console.log("promotion");
                 this.engine.board[mv.endCell.x][mv.endCell.y].piece = mv.promotion;
             }
+            this.lastMove = mv;
             this.votes = {};
             this.voteRenderer.clearVotes();
-            this.chessRenderer.refreshGame(this.engine.board, images);
+            this.chessRenderer.refreshGame(this.engine.board, images, this.lastMove);
             this.updateCheck();
         },
 
@@ -285,7 +287,7 @@ function chessClient() {
                 this.voteRenderer.removeVote(vote.move);
                 document.getElementById("pl"+vote.player.name).innerHTML = vote.player.name+" - "+vote.player.points;
             }
-            this.chessRenderer.refreshGame(this.engine.board, images);
+            this.chessRenderer.refreshGame(this.engine.board, images, this.lastMove);
             let moves = this.engine.getAllPossibleMoves(newCell(this.lastY, this.lastX));
             if(this.selectedPiece !== undefined && this.selectedPiece.color === this.team) {
                 if(moves !== undefined) {
@@ -351,7 +353,7 @@ function onMessageReceived(msg) {
         case messageType.BOARD:
             client.engine = getNewGame();
             client.engine.setBoard(message.params);
-            client.chessRenderer.refreshGame(client.engine.board, images);
+            client.chessRenderer.refreshGame(client.engine.board, images, client.lastMove);
             break;
         case messageType.PLAYER_LEFT:
             let playerLeaving = message.params;

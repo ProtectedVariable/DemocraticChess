@@ -13,6 +13,7 @@ const color2 = "#b58863";
 const textColor = "#777777";
 const highlightColor =  "#007700";
 const highlightColor2 =  "#AA0000";
+const moveHighlightColor = "#44929f";
 const highlightBorder = 6;
 const tileSize = 83;
 
@@ -23,9 +24,12 @@ function chessRenderer(pcanvas, context) {
         canvas : pcanvas,
         ctx : context,
 
-        refreshGame : function(board, images) {
+        refreshGame : function(board, images, lastMove) {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             this.renderBoard();
+            if(lastMove !== undefined) {
+                this.highlightMove(lastMove);
+            }
             if(board !== undefined) {
                 board.forEach(function(line, y) {
                     line.forEach(function(item, x) {
@@ -48,6 +52,13 @@ function chessRenderer(pcanvas, context) {
                 this.ctx.lineWidth = highlightBorder;
                 this.ctx.strokeRect(x*tileSize+highlightBorder/2, y*tileSize+highlightBorder/2, tileSize-highlightBorder, tileSize-highlightBorder);
             }
+        },
+
+        highlightMove : function(move) {
+            console.log(move);
+            this.ctx.fillStyle = moveHighlightColor;
+            this.ctx.fillRect(move.startCell.y * tileSize, move.startCell.x * tileSize, tileSize, tileSize);
+            this.ctx.fillRect(move.endCell.y * tileSize, move.endCell.x * tileSize, tileSize, tileSize);
         },
 
         renderBoard : function() {
