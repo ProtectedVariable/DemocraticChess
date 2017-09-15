@@ -91,22 +91,22 @@ Au final si vous deviez recommencer que changeriez-vous ?\\
 \subsection{Interface Graphique Basique}
 L'interface graphique à été inspirée par celle du site lichess.org. Nous avons a gauche une chatbox ainsi que nos informations. Au centre un canvas sur lequel sera dessiné l'échiquier et a droite la liste des joueurs au dessus du timer.\\
 Un des défis pour la mise en place de cette interface était de reprendre le langage CSS que nous n'avions plus utilisé depuis bien longtemps.\\
-Une fois cette disposition mise en place, il a fallu créer le rendu de l'échiquier et des pieces sur le canvas.\\
-Etant donné que nous avions bien détérminé le protocole réseau et la structure des données avant de se lancer dans le développement cette partie n'as pas présenté de difficultés particulières et s'est terminée plutôt vite.\\
-La suite a été d'ajouter la mise en avant des cases sur lesquels un mouvement était possible. Cette étape a été ralentie par un malentendu entre le moteur et le frontend. Pour Vincent la coordonnée x représentait l'axe verticale et la coordonnée y l'axe horizontal (ordre de parcours de deux boucles imbriquées) alors que pour Thomas c'était l'inverse (coordonnées cartésiennes).\\
+Une fois cette disposition mise en place, il a fallu créer le rendu de l'échiquier et des pièces sur le canvas.\\
+Etant donné que nous avions bien détérminé le protocole réseau et la structure des données avant de nous lancer dans le développement cette partie n'a pas présenté de difficultés particulières et s'est terminée plutôt vite.\\
+La suite a été d'ajouter la mise en avant des cases sur lesquels un mouvement était possible. Cette étape a été ralentie par un malentendu entre le moteur et le frontend. Pour Vincent la coordonnée x représentait l'axe vertical et la coordonnée y l'axe horizontal (ordre de parcours de deux boucles imbriquées) alors que pour Thomas c'était l'inverse (coordonnées cartésiennes).\\
 Le but pour le client est de faire un maximum de calculs en local (notemment les mouvements possibles, les échecs, la detection de promotion, etc...) afin de minimiser le travail du serveur qui n'aura qu'a valider les données.
 
 \subsection{Communications avec le serveur}
-Une fois l'interface basique réalisée il a fallu implémenter les communications avec le serveur afin de pouvoir tester le moteur à plusieurs joueurs. J'ai donc commencé par implémenter les messages de bases tels que la proposition d'un déplacement, le chat et l'execution d'un déplacement. Ceci nous a permis de débugger plus facilement le moteur avec un retour visuel permettant de bien visualiser ce qu'il se passe.\\
-La suite des commandes s'est ajoutée sans soucis bien que le nombre de messages ai augementé avec le temps pour permettre un plus grande souplesse dans la gestion de la partie. Au final il y a 17 messages envoyable par le serveur et 3 par le client.
+Une fois l'interface basique réalisée il a fallu implémenter les communications avec le serveur afin de pouvoir tester le moteur à plusieurs joueurs. J'ai donc commencé par implémenter les messages de bases tels que la proposition d'un déplacement, le chat et l'exécution d'un déplacement. Ceci nous a permis de débugger plus facilement le moteur avec un retour visuel permettant de bien visualiser ce qu'il se passe.\\
+La suite des commandes s'est ajoutée sans soucis bien que le nombre de messages ait augementé avec le temps pour permettre une plus grande souplesse dans la gestion de la partie. Au final il y a 17 messages envoyable par le serveur et 3 par le client.
 
 \subsection{Interface Graphique Finale}
 Une fois les fonctionnalités réseau implémentées il a fallu revoir l'interface graphique afin de livrer une version du jeu plus agréable a utiliser. Celle-ci fut influencée par les tests réalisés avec des inconnus sur internet et leurs retours.\\
 Parmis les changements il y a eu:
 \begin{itemize}
  \item Les flèches de déplacement qui grandissent en fonction des votes
- \item Le choix de chaque joueurs qui s'affiche sur la liste
- \item Les scores de chaque joueurs qui s'affichent sur la liste
+ \item Le choix de chaque joueur qui s'affiche sur la liste
+ \item Les scores de chaque joueur qui s'affichent sur la liste
  \item La case du roi en échec qui s'illumine en rouge
  \item Le timer qui s'affiche en rouge si le temps est inférieur ou égal à 10 secondes
  \item Une notification si le joueur doit voter et qu'il ne regarde pas le jeu
@@ -115,7 +115,7 @@ ainsi qu'un écran d'accueil avec les instructions des bases pour jouer.\\
 La dernière étape a été d'ajouter un menu pour gérer la promotions si un joueur veut enmener son pion jusqu'a bout de l'échiquier.
 \subsection{Questions}
 Qu’est ce qui vous a positivement surpris ?\\
- - Sans doute la satisfaction de développer le frontend, on arrive rapidement a avoir un résultat visuel ce qui est motivant pour continuer.\\
+ - Sans doute la satisfaction de développer le frontend, on arrive rapidement à avoir un résultat visuel ce qui est motivant pour continuer.\\
 Qu’est ce qui vous a pris plus de temps ?\\
  - Faire une disposition a 3 colonnes en CSS (c'est triste mais c'est vrai) au final j'ai du aller regarder sur stackoverflow comment faire\\
 Quel est le pire bug que vous avez eu ?\\
