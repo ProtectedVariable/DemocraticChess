@@ -1,5 +1,7 @@
 # Democratic Chess
 
+A more detailed report of the work behind this project (in French) can be found [here](https://github.com/ProtectedVariable/DemocraticChess/raw/master/report/report.pdf)
+
 # What is it?
 
 It's a game of multiplayer chess, where each team is composed of multiple players that vote on the next move to make. There will be time for each team to vote and then the move which has the most votes will be played. A chatbox will be available on the side of the chessboard to discuss the options within a team.
