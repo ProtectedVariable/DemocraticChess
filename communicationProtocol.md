@@ -1,6 +1,6 @@
 # Communication Protocol
 
-The encapsulation of the communication has not been decided yet but will be of the form:
+The encapsulation of the communication looks like this:
 ```
 {
 	id: <client-id / server>,
@@ -15,7 +15,7 @@ The encapsulation of the communication has not been decided yet but will be of t
 
 ## Client to Server communication
 
-The following types of messages will be available:
+The following types of messages are available:
 
 |Description	|Type| Parameters |
 |----------		|------|--------|
