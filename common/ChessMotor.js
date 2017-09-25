@@ -1,3 +1,12 @@
+/**
+ * @file common/chessMotor.js
+ * @brief Source file defining an engine to play chess
+ *
+ * @authors Thomas Ibanez, Maxime Lovino, Vincent Tournier
+ * @date September 6, 2017
+ * @version 1.0
+ */
+
 "use strict";
 
 const BASE_TIME = 40;

@@ -1,3 +1,12 @@
+/**
+ * @file common/communication.js
+ * @brief Constant and general functions on communicating with server
+ *
+ * @authors Thomas Ibanez, Maxime Lovino, Vincent Tournier
+ * @date September 6, 2017
+ * @version 1.0
+ */
+
 const messageType = {
     NAME: 0,
     MOVE: 1,
