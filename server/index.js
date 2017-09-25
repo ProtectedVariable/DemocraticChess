@@ -138,6 +138,7 @@ function chooseVote() {
         sendListOfPlayers();
         resetGame();
     } else {
+        clearTimeout(turnTimeOut);
         //we choose the best vote
         log.info("Choosing what move to make");
         let keys = Object.keys(votes);
@@ -177,6 +178,7 @@ function chooseVote() {
 }
 
 function switchTeam() {
+    clearTimeout(turnTimeOut);
     if (currentTeam === undefined) {
         currentTeam = chess.PieceColor.WHITE;
     } else {
