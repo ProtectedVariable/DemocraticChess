@@ -19,7 +19,7 @@ const log = new logger("debug");
 
 
 const MAX_NAME_LENGTH = 16;
-const CHECKMATE_DELAY = 5 * 1000;
+const CHECKMATE_DELAY = 30 * 1000;
 const server = new webSocket.Server({port: 8080, family: 4});
 log.info(`Server is alive on IP ${ip.address()}`);
 
@@ -164,6 +164,7 @@ function chooseVote() {
             let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_SERVER_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
             if (isCheckMate) {
+		        log.info(`Checkmate !`);
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_SERVER_CHAT, comm.chat(undefined, "Resetting in 5 seconds"))));
                 setTimeout(resetGame, CHECKMATE_DELAY);
@@ -199,7 +200,7 @@ function switchTeam() {
 function doWeWait() {
     let oldWaiting = waiting;
     let realPlayers = clients.filter(c => c.player.name !== undefined);
-    waiting = realPlayers.length === 1 || realPlayers.every(client => client.player.team === chess.PieceColor.BLACK) || realPlayers.every(client => client.player.team === chess.PieceColor.WHITE);
+    waiting = realPlayers.length <= 1 || realPlayers.every(client => client.player.team === chess.PieceColor.BLACK) || realPlayers.every(client => client.player.team === chess.PieceColor.WHITE);
 
     if (oldWaiting && !waiting) {
         switchTeam();
