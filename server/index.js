@@ -20,7 +20,7 @@ const log = new logger("debug");
 
 const MAX_NAME_LENGTH = 16;
 const CHECKMATE_DELAY = 30 * 1000;
-const server = new webSocket.Server({port: 8080, family: 4});
+const server = new webSocket.Server({ port: 8080, family: 4 });
 log.info(`Server is alive on IP ${ip.address()}`);
 
 let clients = [];
@@ -76,7 +76,7 @@ function weightedCountVote(voteArray) {
 }
 
 function vote(player, move) {
-    return {player, move};
+    return { player, move };
 }
 
 function assignNewPoints(voteArray) {
@@ -164,17 +164,18 @@ function chooseVote() {
             let isCheckMate = engine.checkCheckMate((currentTeam + 1) % 2);
             broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_SERVER_CHAT, comm.chat(undefined, `${isCheckMate ? "Checkmate" : "Check"}`))));
             if (isCheckMate) {
-		        log.info(`Checkmate !`);
+                log.info(`Checkmate !`);
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.RESULT, currentTeam)));
                 broadcastToAll(comm.communication(-1, comm.newMessage(comm.messageType.INCOMING_SERVER_CHAT, comm.chat(undefined, "Resetting in 5 seconds"))));
                 setTimeout(resetGame, CHECKMATE_DELAY);
             }
         }
 
-        votesCount = 0;
-        votes = {};
         switchTeam();
         log.info(`Switching to team ${currentTeam}`);
+        votes = {};
+        votesCount = 0;
+
     }
 }
 
@@ -227,11 +228,11 @@ function sendWaitingMessage() {
 //TODO: add keep alive detection
 
 function client(socket, id, player) {
-    return {socket, id, player};
+    return { socket, id, player };
 }
 
 function player(pseudo) {
-    let user = {name: pseudo, team: undefined, waiting: true, points: 1};
+    let user = { name: pseudo, team: undefined, waiting: true, points: 1 };
 
     //TODO we should call pick team after choosing the name perhaps, not at the creation of the user
     function pickTeam() {
